@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="PhaseProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="1_yn0nl"]
+
+[resource]
+script = ExtResource("1_yn0nl")
+title = "III.  Inseparable"
+max_length = 120.0
+rest_length = 90.0
+comfort = 70.0
+leash_floor = 120.0
+ai_mode = 1
+follow_distance = 30.0
+hold_on_chance = 1.0
+tug_enabled = true
+swap_delay = 0.3
+control_bleed = 0.3
+bleed = 0.8
+anxiety = 1.0
+floaty = 1.0

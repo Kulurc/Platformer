@@ -1,3 +1,353 @@
-[gd_scene format=3 uid="uid://cebx2otjp032r"]
+[gd_scene load_steps=31 format=3 uid="uid://cebx2otjp032r"]
 
-[node name="Prototype" type="Node2D"]
+[ext_resource type="Script" uid="uid://brjxd18fi3" path="res://Scripts/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="2_aya2x"]
+[ext_resource type="Script" uid="uid://46n84pblytya" path="res://Scripts/Level/block.gd" id="2_block"]
+[ext_resource type="Script" uid="uid://dlvuyxe3gesya" path="res://Scripts/Level/crumble_block.gd" id="3_crumble"]
+[ext_resource type="Resource" path="res://Data/Phases/phase_1_together.tres" id="3_go56e"]
+[ext_resource type="Script" uid="uid://catlhkupy8d5i" path="res://Scripts/Level/anchor.gd" id="4_anchor"]
+[ext_resource type="Resource" path="res://Data/Phases/phase_2_closer.tres" id="4_c7ddf"]
+[ext_resource type="Resource" path="res://Data/Phases/phase_3_inseparable.tres" id="5_1xmnc"]
+[ext_resource type="Script" uid="uid://wa3ylqlg5il6" path="res://Scripts/Level/zone.gd" id="5_zone"]
+[ext_resource type="Script" uid="uid://da1htlafyv1tn" path="res://Scripts/character.gd" id="6_character"]
+[ext_resource type="Script" uid="uid://bq5cjco7ndl7o" path="res://Scripts/Dialogue/dialogue_trigger.gd" id="8_044ci"]
+[ext_resource type="Script" uid="uid://cyode3mmydd8d" path="res://Scripts/tether.gd" id="8_tether"]
+[ext_resource type="Script" uid="uid://shkm74xawx8w" path="res://Scripts/hud.gd" id="9_hud"]
+[ext_resource type="Script" uid="uid://dhkojp4r1n4od" path="res://Scripts/Dialogue/dialogue_step.gd" id="9_p8x32"]
+[ext_resource type="Script" uid="uid://cas25ucq1e4dg" path="res://Scripts/Dialogue/dialogue_line.gd" id="10_baih7"]
+[ext_resource type="Script" uid="uid://clxeo0rctbcjm" path="res://Scripts/Level/plate.gd" id="10_plate"]
+[ext_resource type="Script" uid="uid://38vt8q0pmunw" path="res://Scripts/Level/gate.gd" id="11_gate"]
+[ext_resource type="AudioStream" uid="uid://cikgd2sxhqy6k" path="res://Audio/blip_girl.wav" id="11_y8y5s"]
+[ext_resource type="Shader" uid="uid://cdl8pcjphrc3y" path="res://Shaders/anxiety.gdshader" id="12_anxiety"]
+[ext_resource type="AudioStream" uid="uid://bf46rtk5ux64t" path="res://Audio/blip_boy.wav" id="12_aya2x"]
+[ext_resource type="Script" uid="uid://dmn171fwmr3bv" path="res://Scripts/Dialogue/dialogue_call.gd" id="13_go56e"]
+[ext_resource type="Script" path="res://Scripts/pause_menu.gd" id="18_c7ddf"]
+
+[sub_resource type="Resource" id="Resource_1xmnc"]
+script = ExtResource("10_baih7")
+message = "[shake]Gah!!!!"
+text_sound = ExtResource("11_y8y5s")
+
+[sub_resource type="Resource" id="Resource_himwy"]
+script = ExtResource("10_baih7")
+speaker = 1
+message = "Ok buddy."
+text_sound = ExtResource("12_aya2x")
+appear_time = 2.5
+
+[sub_resource type="Resource" id="Resource_ci2vc"]
+script = ExtResource("13_go56e")
+target = NodePath("../../HUD")
+method = &"show_title"
+args = ["I.  Together", "Two of you. Either one can lead."]
+
+[sub_resource type="Resource" id="Resource_7piy8"]
+script = ExtResource("10_baih7")
+speaker = 1
+message = "Don't go <shake rate=18 level=6>so far</shake>."
+text_sound = ExtResource("12_aya2x")
+appear_time = 3.0
+
+[sub_resource type="Resource" id="Resource_uhsvk"]
+script = ExtResource("10_baih7")
+message = "I'm right here."
+text_sound = ExtResource("11_y8y5s")
+appear_time = 3.0
+
+[sub_resource type="Resource" id="Resource_g31rw"]
+script = ExtResource("10_baih7")
+message = "I can't tell where [i]I[/i] end [color=#c0503c][tornado radius=2 freq=3]anymore[/tornado][/color]."
+text_sound = ExtResource("11_y8y5s")
+appear_time = 3.5
+
+[sub_resource type="Resource" id="Resource_2hqkx"]
+script = ExtResource("10_baih7")
+speaker = 1
+message = "Then stay."
+text_sound = ExtResource("12_aya2x")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_anxiety"]
+shader = ExtResource("12_anxiety")
+shader_parameter/separation = 0.0
+shader_parameter/warmth = 0.0
+shader_parameter/pulse_time = 0.0
+
+[node name="Sandbox" type="Node2D"]
+script = ExtResource("1_main")
+phase_profiles = Array[ExtResource("2_aya2x")]([ExtResource("3_go56e"), ExtResource("4_c7ddf"), ExtResource("5_1xmnc")])
+
+[node name="Hints" type="Node2D" parent="."]
+modulate = Color(0.72, 0.77, 0.88, 0.75)
+
+[node name="I_Together" type="Label" parent="Hints"]
+offset_left = -160.0
+offset_top = -220.0
+offset_right = 400.0
+offset_bottom = -170.0
+theme_override_font_sizes/font_size = 14
+text = "A / D  move      SPACE  jump      R  swap who you are
+The other one follows. It walks where you walk."
+
+[node name="I_Ring" type="Label" parent="Hints"]
+offset_left = 800.0
+offset_top = -360.0
+offset_right = 1300.0
+offset_bottom = -310.0
+theme_override_font_sizes/font_size = 14
+text = "E  hook the ring      LMB  reel in      RMB  slack out
+Either of you can swing. The other holds."
+
+[node name="II_Memory" type="Label" parent="Hints"]
+offset_left = 1770.0
+offset_top = -300.0
+offset_right = 2200.0
+offset_bottom = -250.0
+theme_override_font_sizes/font_size = 14
+text = "The cord remembers distance.
+Stay apart too long and it shortens - for good."
+
+[node name="II_Climb" type="Label" parent="Hints"]
+offset_left = 2330.0
+offset_top = -330.0
+offset_right = 2700.0
+offset_bottom = -305.0
+theme_override_font_sizes/font_size = 14
+text = "Only one of you can make this climb."
+
+[node name="III_Rest" type="Label" parent="Hints"]
+offset_left = 3268.0
+offset_top = -330.0
+offset_right = 3450.0
+offset_bottom = -305.0
+theme_override_font_sizes/font_size = 14
+text = "Rest here, together."
+
+[node name="III_Door" type="Label" parent="Hints"]
+offset_left = 3470.0
+offset_top = -440.0
+offset_right = 3960.0
+offset_bottom = -370.0
+theme_override_font_sizes/font_size = 14
+text = "The door opens only while one of you holds the plate.
+Neither of you will stay behind.
+hold Q to sever"
+
+[node name="Level" type="Node2D" parent="."]
+
+[node name="WallLeft" type="StaticBody2D" parent="Level"]
+position = Vector2(-400, -800)
+script = ExtResource("2_block")
+size = Vector2(200, 1200)
+
+[node name="I_Ground" type="StaticBody2D" parent="Level"]
+position = Vector2(-200, 0)
+script = ExtResource("2_block")
+size = Vector2(600, 400)
+
+[node name="I_AfterSmallGap" type="StaticBody2D" parent="Level"]
+position = Vector2(480, 0)
+script = ExtResource("2_block")
+size = Vector2(300, 400)
+
+[node name="I_Step" type="StaticBody2D" parent="Level"]
+position = Vector2(780, -56)
+script = ExtResource("2_block")
+size = Vector2(260, 456)
+
+[node name="I_AfterRing" type="StaticBody2D" parent="Level"]
+position = Vector2(1260, -56)
+script = ExtResource("2_block")
+size = Vector2(740, 456)
+
+[node name="II_Crumble1" type="StaticBody2D" parent="Level"]
+position = Vector2(2000, -56)
+script = ExtResource("3_crumble")
+size = Vector2(96, 24)
+
+[node name="II_Crumble2" type="StaticBody2D" parent="Level"]
+position = Vector2(2096, -56)
+script = ExtResource("3_crumble")
+size = Vector2(96, 24)
+
+[node name="II_Crumble3" type="StaticBody2D" parent="Level"]
+position = Vector2(2192, -56)
+script = ExtResource("3_crumble")
+size = Vector2(96, 24)
+
+[node name="II_AfterCrumble" type="StaticBody2D" parent="Level"]
+position = Vector2(2288, -56)
+script = ExtResource("2_block")
+size = Vector2(360, 456)
+
+[node name="II_HighStep" type="StaticBody2D" parent="Level"]
+position = Vector2(2648, -152)
+script = ExtResource("2_block")
+size = Vector2(502, 552)
+
+[node name="III_Ground" type="StaticBody2D" parent="Level"]
+position = Vector2(3220, -152)
+script = ExtResource("2_block")
+size = Vector2(780, 552)
+
+[node name="III_NookRoof" type="StaticBody2D" parent="Level"]
+position = Vector2(3250, -290)
+script = ExtResource("2_block")
+size = Vector2(160, 16)
+
+[node name="III_Gate" type="StaticBody2D" parent="Level"]
+position = Vector2(3780, -480)
+script = ExtResource("11_gate")
+plate_path = NodePath("../../Zones/III_Plate")
+size = Vector2(24, 328)
+
+[node name="WallRight" type="StaticBody2D" parent="Level"]
+position = Vector2(4000, -900)
+script = ExtResource("2_block")
+size = Vector2(200, 1300)
+
+[node name="Anchors" type="Node2D" parent="."]
+
+[node name="I_Ring" type="Node2D" parent="Anchors"]
+position = Vector2(1150, -230)
+script = ExtResource("4_anchor")
+
+[node name="Zones" type="Node2D" parent="."]
+
+[node name="KillFloor" type="Area2D" parent="Zones"]
+position = Vector2(-400, 420)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+kind = 0
+size = Vector2(4600, 200)
+
+[node name="CP0_Start" type="Area2D" parent="Zones"]
+position = Vector2(0, -140)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+
+[node name="CP1_AfterRing" type="Area2D" parent="Zones"]
+position = Vector2(1300, -196)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+
+[node name="Phase_II" type="Area2D" parent="Zones"]
+position = Vector2(1700, -560)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+kind = 2
+size = Vector2(40, 504)
+
+[node name="CP2_AfterCrumble" type="Area2D" parent="Zones"]
+position = Vector2(2320, -196)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+
+[node name="CP3_HighStep" type="Area2D" parent="Zones"]
+position = Vector2(2980, -292)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+
+[node name="Phase_III" type="Area2D" parent="Zones"]
+position = Vector2(3080, -660)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+kind = 2
+size = Vector2(40, 508)
+phase = 3
+
+[node name="III_Stay" type="Area2D" parent="Zones"]
+position = Vector2(3265, -274)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+kind = 3
+size = Vector2(130, 122)
+
+[node name="III_Plate" type="Area2D" parent="Zones"]
+position = Vector2(3520, -176)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("10_plate")
+
+[node name="III_Exit" type="Area2D" parent="Zones"]
+position = Vector2(3860, -300)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("5_zone")
+kind = 4
+size = Vector2(120, 148)
+
+[node name="Dialogue" type="Node2D" parent="."]
+
+[node name="Intro" type="Area2D" parent="Dialogue"]
+position = Vector2(165, -140)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("8_044ci")
+steps = Array[ExtResource("9_p8x32")]([SubResource("Resource_1xmnc"), SubResource("Resource_himwy"), SubResource("Resource_ci2vc")])
+size = Vector2(300, 140)
+
+[node name="II_Closer" type="Area2D" parent="Dialogue"]
+position = Vector2(1640, -200)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("8_044ci")
+steps = Array[ExtResource("9_p8x32")]([SubResource("Resource_7piy8"), SubResource("Resource_uhsvk")])
+size = Vector2(60, 144)
+
+[node name="III_Inseparable" type="Area2D" parent="Dialogue"]
+position = Vector2(3040, -296)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("8_044ci")
+steps = Array[ExtResource("9_p8x32")]([SubResource("Resource_g31rw"), SubResource("Resource_2hqkx")])
+size = Vector2(60, 144)
+
+[node name="Tether" type="Node2D" parent="."]
+script = ExtResource("8_tether")
+
+[node name="Ember" type="CharacterBody2D" parent="."]
+position = Vector2(-20, -22)
+script = ExtResource("6_character")
+display_name = "Ember"
+shape = 1
+size = Vector2(36, 36)
+color = Color(1, 0.74, 0.42, 1)
+speaker = 1
+bubble_tint = Color(1, 0.86, 0.66, 1)
+run_speed = 200.0
+jump_height = 80.0
+time_to_apex = 0.32
+mass = 1.5
+grip = 3.0
+
+[node name="Wisp" type="CharacterBody2D" parent="."]
+position = Vector2(40, -20)
+script = ExtResource("6_character")
+
+[node name="Camera" type="Camera2D" parent="."]
+
+[node name="Anxiety" type="CanvasLayer" parent="."]
+layer = 5
+
+[node name="Filter" type="ColorRect" parent="Anxiety"]
+material = SubResource("ShaderMaterial_anxiety")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HUD" type="CanvasLayer" parent="."]
+script = ExtResource("9_hud")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("18_c7ddf")

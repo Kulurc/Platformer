@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PhaseProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="1_majxk"]
+
+[resource]
+script = ExtResource("1_majxk")
+title = "II.  Closer"
+subtitle = "The cord remembers how far apart you were."
+max_length = 320.0
+rest_length = 150.0
+comfort = 110.0
+shrink_after = 1.2
+leash_floor = 150.0
+ai_mode = 1
+follow_distance = 50.0
+predict = 0.35
+mirror_jump_chance = 1.0
+control_bleed = 0.12
+bleed = 0.35
+anxiety = 0.8
+floaty = 0.5

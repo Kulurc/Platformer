@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="PhaseProfile" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="1_ma145"]
+
+[resource]
+script = ExtResource("1_ma145")
+subtitle = "Two of you. Either one can lead."
+show_title = false
