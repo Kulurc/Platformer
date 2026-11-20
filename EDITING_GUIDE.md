@@ -3,14 +3,49 @@
 Everything below is editable in the Godot **Inspector**. Hover any field for its tooltip.
 Changes apply the next time you press **F5 / Run**.
 
+## Making a new level
+
+1. **Scene → New Scene → 2D Scene**, rename the root (e.g. `Level2`), save it in `Scenes/`.
+2. From the FileSystem dock, drag **`Scenes/Prefabs/tether_rig.tscn`** into the scene.
+   That one node is both characters, the cord, camera, HUD, anxiety filter and pause menu.
+   **Where you put it is where the pair spawns** (Wisp at the rig's origin, Ember 60 px left).
+3. Add ground under it: Add Child Node → search **Block** (StaticBody2D), set `size`.
+4. Press **F6** (Run Current Scene). That's it.
+
+Optional, all from Add Child Node: `Zone` (checkpoints, phase changes, endings, kill floor),
+`TetherAnchor` (rings), `CrumbleBlock`, `Plate` + `Gate`, `DialogueTrigger`.
+No KILL zone? Falling `fall_respawn_depth` (1500 px) below the lowest checkpoint respawns you.
+To make a level the game starts in: Project → Project Settings → Application → Run → Main Scene.
+
+**Intro on a black screen** (Level1 does this):
+1. Select the level's `TetherRig` → Intro → tick **`start_black`**.
+2. Add a `DialogueTrigger` around the spawn point. Its steps: your DialogueLines, then a
+   **DialogueFade** (FROM_BLACK, `duration`) as the last step. Put a short DialogueWait first
+   for a beat of silence. Bubbles show on the black; input is locked until the reveal is
+   halfway done. DialogueFade TO_BLACK works the same way for endings and scene cuts.
+3. **Cord reveal** (Level1 does this): after the last line, use three steps instead of one DialogueFade:
+   1. **DialogueCall** → Target `TetherRig`, Method `reveal_tether` (no args): the cord fades in alone
+      on the black and holds. It stays in front of the black and the characters.
+   2. **DialogueFade** FROM_BLACK: the scene fades in.
+   3. **DialogueCall** → Target `TetherRig`, Method `tether_behind_characters`: back to normal order.
+   Set the reveal up on TetherRig → Intro: `tether_reveal_sound` (+ `_volume_db`), `tether_reveal_time`
+   (cord fade-in), `tether_reveal_hold` (cord alone on black). Args `[rope_time, hold]` override them
+   for one call (-1 = use the Intro setting).
+
+**Per-level overrides:** select the TetherRig in a level and change anything in the Inspector
+(e.g. a different `phase_profiles` list, or start a level at phase III by listing only that
+profile). Overrides only affect that level. To change Wisp/Ember everywhere, open
+`tether_rig.tscn` itself; to change them in one level only, right-click the rig →
+**Editable Children**.
+
 ## Where things live
 
 | To change... | Select / open |
 |---|---|
 | Anything about a **phase** (cord, AI, pull-back, tug, swap, visuals) | `Data/Phases/phase_1_together.tres`, `phase_2_closer.tres`, `phase_3_inseparable.tres` (double-click) |
-| A **character** (speed, jump, weight, grip, sprite, reel tremble, bubble colour) | `Wisp` / `Ember` nodes in `Scenes/prototype.tscn` |
-| **Cord physics** shared by every phase (stiffness, reel speed, break force, look, sounds) | `Tether` node |
-| Phase order, camera, sever bonus, debug keys | Root node (`Sandbox`) |
+| A **character** (speed, jump, weight, grip, sprite, reel tremble, bubble colour) | `Wisp` / `Ember` in `Scenes/Prefabs/tether_rig.tscn` |
+| **Cord physics** shared by every phase (stiffness, reel speed, break force, look, sounds) | `Tether` in `tether_rig.tscn` |
+| Phase order, camera, sever bonus, debug keys, fall safety net | `TetherRig` root (in `tether_rig.tscn`, or per level on the instance) |
 | Level geometry, rings, checkpoints, phase changes, endings | Nodes under `Level`, `Anchors`, `Zones` |
 | Dialogue and scripted events | Nodes under `Dialogue` (DialogueTrigger) |
 | Volume, music | Pause menu (Esc) / `SoundManager` autoload / Audio bus panel |
@@ -32,6 +67,7 @@ Open **`Data/Phases/phase_2_closer.tres`**.
 | Partner AI | `follow_distance` | How close it stays | 50 |
 | | `predict` | How far ahead of you it moves (s of your velocity) | 0.35 |
 | | `mirror_jump_chance` | Chance it copies your jump, even into a pit | 1.0 |
+| | `safe_drop_height` | Tallest ledge (px) it walks off on its own if there's floor below; 0 = never drops. Set per phase (all default 200) | 200 |
 | Swap | `control_bleed` | Your input still drives the old body this long after a swap | 0.12 |
 | Look & feel | `bleed` / `anxiety` / `floaty` | Look-alike amount / cold filter strength / how mushy your movement gets when apart | 0.35 / 0.8 / 0.5 |
 
@@ -99,13 +135,13 @@ Use **F4** (slow-motion) to watch a tug frame by frame.
 
 ### Phases
 - Any phase can use any behaviour: e.g. give phase II a mild tug (`tug_enabled`, high `tug_force`) or phase I a little `predict`.
-- **Add a phase IV:** duplicate a `.tres`, edit it, add it as the 4th entry of the root's `phase_profiles`, and place a PHASE zone with `phase = 4`.
+- **Add a phase IV:** duplicate a `.tres`, edit it, add it as the 4th entry of the TetherRig's `phase_profiles`, and place a PHASE zone with `phase = 4`.
 - Phases only escalate; the cord's memory survives respawns.
 
-### Debug keys (root → Debug → `debug_tools`; turn off before sharing a build)
+### Debug keys (TetherRig → Debug → `debug_tools`; turn off before sharing a build)
 | Key | Does |
 |---|---|
-| F1 | Toggle the readout (tension bar, cord length/cap, who's planted) |
+| F1 | Toggle the debug readout (top) and controls reminder (bottom). Both start hidden; tick `show_debug_text` / `show_controls` in TetherRig → Debug to start with them on |
 | F2 | Jump to the next phase |
 | F3 | Teleport both to the next checkpoint (wraps around) |
 | F4 | Slow-motion toggle (`slow_motion_scale`, default 0.25) |
@@ -114,19 +150,32 @@ Use **F4** (slow-motion) to watch a tug frame by frame.
 ### Dialogue and scripted events (DialogueTrigger)
 - `activated_by`: EITHER character, only the CONTROLLED one, or BOTH inside together.
 - `one_shot`: untick to replay every time.
+- `debug`: tick to switch a trigger OFF while testing (drawn red with "DEBUG: OFF" in the editor). If it's an intro
+  that fades in from black, the level starts uncovered instead, so you can play straight away. Untick before sharing a build.
+- Copy/paste freely: pasted or duplicated steps (single slots, whole arrays, or Ctrl+D on a trigger) are made unique
+  automatically, so editing one never changes another. No "Make Unique" needed.
 - Steps you can add: **DialogueLine** (speech bubble, BBCode), **DialogueCall** (call a method),
-  **DialogueWait** (pause N seconds), **DialogueMusic** (start/stop music or ambience; empty stream = stop).
-- Methods on the root node made for DialogueCall (drag the root onto `target`):
+  **DialogueWait** (pause N seconds), **DialogueMusic** (start/stop music or ambience; empty stream = stop),
+  **DialogueFade** (fade from/to black; speech bubbles stay visible on black).
+- Methods on the **TetherRig** made for DialogueCall (drag the TetherRig node onto `target`):
 
   | Method | Args | Use |
   |---|---|---|
+  | `show_message` | text, seconds (default 2.5) | Centered text that fades in and out |
+  | `show_title` | title, subtitle (optional) | Big title card, like the phase titles |
+  | `show_ending` | text | Darken the screen and leave a final line up |
   | `lock_input` | seconds | Cutscene: ignore the player for a while |
+  | `fade_from_black` / `fade_to_black` | duration | Same as a DialogueFade step |
+  | `reveal_tether` | (none; optional rope_time, hold) | Intro: cord fades in alone on the black, drawn in front |
+  | `tether_behind_characters` / `tether_in_front` | (none) | Put the cord back behind the characters / bring it to the front |
   | `shake_camera` | amount | Emphasis |
   | `go_to_phase` | phase number | Escalate the relationship at a story beat |
   | `sever_tether` | (none) | Cut the cord from a script |
   | `swap` | (none) | Force a perspective swap |
 
-  Plus anything on HUD, e.g. `show_title(title, subtitle)` or `show_message(text, seconds)`.
+  Args go in order, e.g. `show_message` → `["Something's wrong.", 3.0]`; ones with a default can be left out.
+  **Wait until done** (on by default): the next step waits for messages, titles and fades to finish.
+  Untick it to let the conversation carry on while a title or message is showing.
 
 ### Characters (Wisp / Ember nodes)
 `run_speed`, `jump_height`, `time_to_apex` (jump feel), `mass` and `grip` (who holds whom),
@@ -139,15 +188,26 @@ and `speaker` (GIRL/BOY for dialogue).
 `anchor_range` (ring hook reach), `sever_hold_time`, plus the **Reel / slack feedback**
 group (tints, shimmer, flow dots, `reel_sound` / `slack_sound` and their volumes).
 
-### Root node (Sandbox)
-Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`, and
-`sever_speed_mult` / `sever_jump_mult` (how good movement feels after severing).
+### TetherRig root
+Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`,
+`sever_speed_mult` / `sever_jump_mult` (how good movement feels after severing), and
+`fall_respawn_depth`.
 
 ### Level pieces
+- **Resize handles** (Box Resize plugin, `addons/box_resize/`): select a Block, CrumbleBlock, Gate, Zone,
+  Plate or DialogueTrigger and drag the orange squares on its edges/corners. Snaps to 8 px (hold **Ctrl** for free),
+  shows the size while dragging, and Ctrl+Z undoes it. If no handles appear: Project → Project Settings → Plugins → tick Box Resize.
+  Change the snap step with `SNAP` at the top of `addons/box_resize/plugin.gd`.
 - **Block** / **CrumbleBlock** / **Gate**: position = top-left; resize with `size`. Crumble: `crumble_delay`, `respawn_delay`. Gate: point `plate_path` at a Plate.
 - **TetherAnchor** (ring): drag anywhere; the faint circle shows hook range.
+- **LevelExit** (`Scenes/Prefabs/level_exit.tscn`, or Add Node → LevelExit): walk in → fade to black → load
+  `next_scene`, and the next level fades in. Type a scene name without `.tscn` (`prototype`, `Level1`,
+  `Levels/Level2`); names are looked up in `SCENES_FOLDER` at the top of `Scripts/Level/level_exit.gd`
+  (`res://Scenes/`). The box shows green "EXIT → name" in the editor, or red if the scene can't be found.
+  Also: `fade_time`, `activated_by` (EITHER / CONTROLLED / BOTH), `debug` (switch it off while testing).
+  From a DialogueCall: Target `TetherRig`, Method `go_to_scene`, Args `["Level2"]` (or `["Level2", 2.0]` for the fade).
 - **Zone**: `kind` = KILL / CHECKPOINT / PHASE / STAY / EXIT. PHASE uses `phase`; STAY uses `stay_time`.
-- Ending text is in `Scripts/main.gd` → `_check_zones()` (search "You stayed").
+- Ending text is in `Scripts/main.gd` (the TetherRig script) → `_check_zones()` (search "You stayed").
 
 ### Audio
 - Bus volumes: pause menu sliders, or the **Audio** panel at the bottom of the editor (buses: Master, Music, Sfx).

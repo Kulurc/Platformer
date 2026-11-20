@@ -1,7 +1,7 @@
 class_name PhaseProfile
 extends Resource
 ## One relationship phase. The sandbox's phases live in Data/Phases/*.tres and are listed,
-## in order, on the root node's `phase_profiles`. Double-click a .tres to edit it in the
+## in order, on the TetherRig's `phase_profiles` (Scenes/Prefabs/tether_rig.tscn). Double-click a .tres to edit it in the
 ## Inspector; changes apply the next time you run. Add a 4th file + entry for a phase IV
 ## (Zone "phase" numbers start at 1 = first entry).
 
@@ -39,6 +39,9 @@ enum AIMode { MIRROR, FOLLOW }
 @export_range(0.0, 1.5, 0.05) var predict := 0.0
 ## Chance it copies your jump even when there's nothing to jump (it may land in a pit).
 @export_range(0.0, 1.0, 0.05) var mirror_jump_chance := 0.0
+## Tallest ledge (px) it will walk off on its own when there's floor underneath within this
+## distance. Deeper than this (or a bottomless pit) and it stops at the edge and waits. 0 = never drops.
+@export_range(0.0, 1000.0, 1.0, "or_greater") var safe_drop_height := 200.0
 
 @export_group("Pull-back (holding on when you leave)")
 ## Chance that, when you start walking away, it plants its feet and holds on.

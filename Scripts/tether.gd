@@ -107,8 +107,14 @@ var _b_braced := false
 var _rope := PackedVector2Array()
 var _rope_prev := PackedVector2Array()
 var _rope_alpha := 1.0
+## Extra fade on the drawn cord, used by TetherRig.reveal_tether() in intros (1 = normal).
+var reveal_alpha := 1.0:
+	set(v):
+		reveal_alpha = clampf(v, 0.0, 1.0)
+		queue_redraw()
 var _rope_free := false
 var _free_seg := 8.0
+var input_enabled := true   ## off during cutscenes / black screens (set by the TetherRig)
 var _reel_moving := false   ## reeling AND the cord actually got shorter this frame
 var _slack_moving := false
 var _change := 0.0          ## smoothed: +1 reeling, -1 slacking, 0 idle
@@ -116,6 +122,10 @@ var _flow_phase := 0.0
 var _fx_time := 0.0
 var _reel_player: AudioStreamPlayer
 var _slack_player: AudioStreamPlayer
+
+
+func _ready() -> void:
+	top_level = true  # the rope is drawn in world space, wherever the rig is placed
 
 
 func setup(body_a: Character, body_b: Character, ctrl: Character) -> void:
@@ -392,14 +402,14 @@ func _handle_verbs(dt: float) -> void:
 	if anchor == null:
 		hover_anchor = _find_anchor()
 
-	if Input.is_action_just_pressed("hook"):
+	if input_enabled and Input.is_action_just_pressed("hook"):
 		if anchor:
 			release_anchor()
 		else:
 			try_hook()
 
-	reeling = Input.is_action_pressed("reel") and not Input.is_action_pressed("slack")
-	slacking = Input.is_action_pressed("slack") and not reeling
+	reeling = input_enabled and Input.is_action_pressed("reel") and not Input.is_action_pressed("slack")
+	slacking = input_enabled and Input.is_action_pressed("slack") and not reeling
 	var len_before := length
 	if reeling:
 		var can_reel := length > min_length and tension_smooth < reel_max_force * weight_unit
@@ -425,7 +435,7 @@ func _handle_verbs(dt: float) -> void:
 		# Both on solid ground: a reeled-in cord eases back to a comfortable length.
 		length = minf(minf(rest_length, leash_cap), length + relax_speed * dt)
 
-	if Input.is_action_pressed("sever"):
+	if input_enabled and Input.is_action_pressed("sever"):
 		sever_hold += dt
 		if sever_hold >= sever_hold_time:
 			_snap(&"sever")
@@ -603,7 +613,7 @@ func _draw_flow_dots(line: PackedVector2Array, col: Color, width: float) -> void
 
 
 func _draw() -> void:
-	if _rope_alpha > 0.0 and _rope.size() > 1:
+	if _rope_alpha * reveal_alpha > 0.0 and _rope.size() > 1:
 		# Memory: the shorter the cord has become, the hotter and heavier it looks.
 		var memory := clampf(1.0 - (leash_cap - 120.0) / (440.0 - 120.0), 0.0, 1.0)
 		var col := rope_color.lerp(strain_color, memory * 0.45)
@@ -613,7 +623,7 @@ func _draw() -> void:
 		col = col.lerp(strain_color, strain)
 		if not is_active():
 			col = col.darkened(0.35)
-		col.a = _rope_alpha
+		col.a = _rope_alpha * reveal_alpha
 		var width := lerpf(3.0, 1.5, strain) + memory * 1.5
 		var line := _rope
 		var shimmer := change_rope_shake * absf(_change)

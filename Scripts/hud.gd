@@ -8,7 +8,8 @@ var _title: Label
 var _subtitle: Label
 var _controls: Label
 var _debug: Label
-var _show_debug := true
+var _show_debug := false
+var _show_controls := false
 var _msg_tween: Tween
 var _title_tween: Tween
 
@@ -39,12 +40,24 @@ func _ready() -> void:
 	_subtitle.modulate.a = 0.0
 
 	_controls = _make_label(13, Color(0.6, 0.65, 0.75, 0.8))
-	_controls.text = "A/D move   SPACE jump   R swap   E hook   LMB reel   RMB slack   hold Q sever   BACKSPACE restart   F1 debug"
+	_controls.text = "A/D move   SPACE jump   TAB swap   E hook   LMB reel   RMB slack   hold Q sever   R restart   F1 debug"
 	_controls.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	_controls.position += Vector2(16, -30)
 
 	_debug = _make_label(13, Color(0.75, 0.8, 0.9, 0.9))
 	_debug.position = Vector2(16, 12)
+	set_overlays(_show_debug, _show_controls)
+
+
+## Show/hide the debug readout (top) and controls reminder (bottom).
+## Set from the TetherRig → Debug group (show_debug_text / show_controls).
+func set_overlays(debug_text: bool, controls: bool) -> void:
+	_show_debug = debug_text
+	_show_controls = controls
+	if _debug:
+		_debug.visible = debug_text
+	if _controls:
+		_controls.visible = controls
 
 
 func _make_label(font_size: int, col: Color) -> Label:
@@ -58,8 +71,8 @@ func _make_label(font_size: int, col: Color) -> Label:
 
 func _process(_dt: float) -> void:
 	if Input.is_action_just_pressed("debug"):
-		_show_debug = not _show_debug
-		_debug.visible = _show_debug
+		var on := not (_show_debug or _show_controls)
+		set_overlays(on, on)
 
 
 func update_debug(t: Tether, you: Character, phase: int, separation: float, tools := false) -> void:

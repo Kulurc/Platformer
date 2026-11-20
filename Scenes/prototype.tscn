@@ -1,27 +1,18 @@
-[gd_scene load_steps=31 format=3 uid="uid://cebx2otjp032r"]
+[gd_scene load_steps=21 format=3 uid="uid://cebx2otjp032r"]
 
-[ext_resource type="Script" uid="uid://brjxd18fi3" path="res://Scripts/main.gd" id="1_main"]
-[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="2_aya2x"]
 [ext_resource type="Script" uid="uid://46n84pblytya" path="res://Scripts/Level/block.gd" id="2_block"]
 [ext_resource type="Script" uid="uid://dlvuyxe3gesya" path="res://Scripts/Level/crumble_block.gd" id="3_crumble"]
-[ext_resource type="Resource" path="res://Data/Phases/phase_1_together.tres" id="3_go56e"]
 [ext_resource type="Script" uid="uid://catlhkupy8d5i" path="res://Scripts/Level/anchor.gd" id="4_anchor"]
-[ext_resource type="Resource" path="res://Data/Phases/phase_2_closer.tres" id="4_c7ddf"]
-[ext_resource type="Resource" path="res://Data/Phases/phase_3_inseparable.tres" id="5_1xmnc"]
 [ext_resource type="Script" uid="uid://wa3ylqlg5il6" path="res://Scripts/Level/zone.gd" id="5_zone"]
-[ext_resource type="Script" uid="uid://da1htlafyv1tn" path="res://Scripts/character.gd" id="6_character"]
 [ext_resource type="Script" uid="uid://bq5cjco7ndl7o" path="res://Scripts/Dialogue/dialogue_trigger.gd" id="8_044ci"]
-[ext_resource type="Script" uid="uid://cyode3mmydd8d" path="res://Scripts/tether.gd" id="8_tether"]
-[ext_resource type="Script" uid="uid://shkm74xawx8w" path="res://Scripts/hud.gd" id="9_hud"]
 [ext_resource type="Script" uid="uid://dhkojp4r1n4od" path="res://Scripts/Dialogue/dialogue_step.gd" id="9_p8x32"]
 [ext_resource type="Script" uid="uid://cas25ucq1e4dg" path="res://Scripts/Dialogue/dialogue_line.gd" id="10_baih7"]
 [ext_resource type="Script" uid="uid://clxeo0rctbcjm" path="res://Scripts/Level/plate.gd" id="10_plate"]
 [ext_resource type="Script" uid="uid://38vt8q0pmunw" path="res://Scripts/Level/gate.gd" id="11_gate"]
 [ext_resource type="AudioStream" uid="uid://cikgd2sxhqy6k" path="res://Audio/blip_girl.wav" id="11_y8y5s"]
-[ext_resource type="Shader" uid="uid://cdl8pcjphrc3y" path="res://Shaders/anxiety.gdshader" id="12_anxiety"]
 [ext_resource type="AudioStream" uid="uid://bf46rtk5ux64t" path="res://Audio/blip_boy.wav" id="12_aya2x"]
+[ext_resource type="PackedScene" path="res://Scenes/Prefabs/tether_rig.tscn" id="13_7dhkk"]
 [ext_resource type="Script" uid="uid://dmn171fwmr3bv" path="res://Scripts/Dialogue/dialogue_call.gd" id="13_go56e"]
-[ext_resource type="Script" path="res://Scripts/pause_menu.gd" id="18_c7ddf"]
 
 [sub_resource type="Resource" id="Resource_1xmnc"]
 script = ExtResource("10_baih7")
@@ -37,9 +28,10 @@ appear_time = 2.5
 
 [sub_resource type="Resource" id="Resource_ci2vc"]
 script = ExtResource("13_go56e")
-target = NodePath("../../HUD")
+target = NodePath("../../TetherRig")
 method = &"show_title"
 args = ["I.  Together", "Two of you. Either one can lead."]
+wait_until_done = false
 
 [sub_resource type="Resource" id="Resource_7piy8"]
 script = ExtResource("10_baih7")
@@ -66,15 +58,7 @@ speaker = 1
 message = "Then stay."
 text_sound = ExtResource("12_aya2x")
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_anxiety"]
-shader = ExtResource("12_anxiety")
-shader_parameter/separation = 0.0
-shader_parameter/warmth = 0.0
-shader_parameter/pulse_time = 0.0
-
 [node name="Sandbox" type="Node2D"]
-script = ExtResource("1_main")
-phase_profiles = Array[ExtResource("2_aya2x")]([ExtResource("3_go56e"), ExtResource("4_c7ddf"), ExtResource("5_1xmnc")])
 
 [node name="Hints" type="Node2D" parent="."]
 modulate = Color(0.72, 0.77, 0.88, 0.75)
@@ -310,44 +294,5 @@ script = ExtResource("8_044ci")
 steps = Array[ExtResource("9_p8x32")]([SubResource("Resource_g31rw"), SubResource("Resource_2hqkx")])
 size = Vector2(60, 144)
 
-[node name="Tether" type="Node2D" parent="."]
-script = ExtResource("8_tether")
-
-[node name="Ember" type="CharacterBody2D" parent="."]
-position = Vector2(-20, -22)
-script = ExtResource("6_character")
-display_name = "Ember"
-shape = 1
-size = Vector2(36, 36)
-color = Color(1, 0.74, 0.42, 1)
-speaker = 1
-bubble_tint = Color(1, 0.86, 0.66, 1)
-run_speed = 200.0
-jump_height = 80.0
-time_to_apex = 0.32
-mass = 1.5
-grip = 3.0
-
-[node name="Wisp" type="CharacterBody2D" parent="."]
+[node name="TetherRig" parent="." instance=ExtResource("13_7dhkk")]
 position = Vector2(40, -20)
-script = ExtResource("6_character")
-
-[node name="Camera" type="Camera2D" parent="."]
-
-[node name="Anxiety" type="CanvasLayer" parent="."]
-layer = 5
-
-[node name="Filter" type="ColorRect" parent="Anxiety"]
-material = SubResource("ShaderMaterial_anxiety")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="HUD" type="CanvasLayer" parent="."]
-script = ExtResource("9_hud")
-
-[node name="PauseMenu" type="CanvasLayer" parent="."]
-script = ExtResource("18_c7ddf")

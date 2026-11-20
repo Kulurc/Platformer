@@ -18,6 +18,7 @@ var hold_on_time := 0.45
 var hold_on_cooldown := 0.0
 var jump_safety := 0.9     ## fraction of its jump height/reach it trusts itself with
 var trail_margin := 14.0   ## px of daylight it keeps behind you (beyond both half-widths)
+var safe_drop_height := 200.0  ## will walk off ledges at most this tall (PhaseProfile → Partner AI)
 
 var _panic := 0.0
 var _hesitate := 0.0
@@ -36,6 +37,7 @@ func configure(p: PhaseProfile) -> void:
 	hold_on_chance = p.hold_on_chance
 	hold_on_time = p.hold_on_time
 	hold_on_cooldown = p.hold_on_cooldown
+	safe_drop_height = p.safe_drop_height
 
 
 func panic(t: float) -> void:
@@ -154,6 +156,12 @@ func _scan(me: Character, dir: float) -> String:
 			if _ray(space, me, Vector2(x, feet - reach_h * 0.8), Vector2(x, feet + 60.0)):
 				return "jump"
 			k += 15.0
+		# Nothing to jump to: is it just a step down? Walk off if there's floor within
+		# safe_drop_height under where it would land (a body-width past the edge).
+		if safe_drop_height > 0.0:
+			var land_x := x0 + dir * (hw * 2.0 + 6.0)
+			if _ray(space, me, Vector2(land_x, feet - 4.0), Vector2(land_x, feet + safe_drop_height)):
+				return "clear"
 		return "blocked"
 	return "clear"
 

@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="PhaseProfile" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="PhaseProfile" load_steps=2 format=3 uid="uid://42cxsnjmgsm7"]
 
-[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="1_yn0nl"]
+[ext_resource type="Script" uid="uid://8n1acew1pt75" path="res://Scripts/phase_profile.gd" id="1_yn0nl"]
 
 [resource]
 script = ExtResource("1_yn0nl")

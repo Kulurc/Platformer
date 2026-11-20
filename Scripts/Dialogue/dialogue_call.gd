@@ -7,6 +7,9 @@ extends DialogueStep
 @export var target: NodePath
 @export var method: StringName
 @export var args: Array = []
+## On: if the method takes time (fades, messages, titles), the next step waits for it.
+## Off: start it and move straight on (e.g. a title card while the characters keep talking).
+@export var wait_until_done := true
 
 
 func run(trigger: Node) -> void:
@@ -17,7 +20,10 @@ func run(trigger: Node) -> void:
 	if not node.has_method(method):
 		push_warning("DialogueCall: %s has no method '%s'." % [node.name, method])
 		return
-	await node.callv(method, args)
+	if wait_until_done:
+		await node.callv(method, args)
+	else:
+		node.callv(method, args)
 
 
 ## Inspector paths may be relative to the trigger or to the scene root - accept either.
