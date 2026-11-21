@@ -72,7 +72,52 @@ Open **`Data/Phases/phase_2_closer.tres`**.
 | | `mirror_jump_chance` | Chance it copies your jump, even into a pit | 1.0 |
 | | `safe_drop_height` | Tallest ledge (px) it walks off on its own if there's floor below; 0 = never drops. Set per phase (all default 200) | 200 |
 | Swap | `control_bleed` | Your input still drives the old body this long after a swap | 0.12 |
-| Look & feel | `bleed` / `anxiety` / `floaty` | Look-alike amount / cold filter strength / how mushy your movement gets when apart | 0.35 / 0.8 / 0.5 |
+| Look & feel | `anxiety` / `floaty` | Cold filter strength / how mushy your movement gets when apart | 0.8 / 0.5 |
+
+### How the cord shortens (read this before tuning)
+
+Two different lengths are in play. Keep them apart in your head:
+
+- **The cord** - how long the rope is *right now*. The player changes it: reel in (shorter), give slack
+  (longer). When both stand on the ground, a reeled-in cord eases back out to `rest_length`.
+- **The ceiling** - the *most* slack the player can give. Think of it as the length of rope left on the
+  spool. The cord can never be longer than the ceiling. **Shortening only ever moves the ceiling.**
+
+The ceiling moves in two situations:
+
+1. **A new phase starts.** The ceiling slides down to the new `max_length` (at the Tether node's
+   `tighten_speed`, 90 px/s), e.g. 440 → 320 entering phase II takes about 1.3 s.
+2. **You stay apart too long (phase II's "tension memory").** It works like a timer:
+   - "Apart" = the two are further than `comfort` apart, measured **along the cord** (through a ring
+     if hooked), not in a straight line.
+   - While apart, a timer counts up. Once it passes `shrink_after`, the ceiling drops by `shrink_speed`
+     px every second, for as long as you stay apart.
+   - Come back within `comfort` and the timer drains (twice as fast as it filled), but the ceiling
+     **stays where it got to**. It never grows back, not even after dying. It stops at `leash_floor`.
+
+**Worked example (phase II now):** the ceiling starts at 320. Walk more than 110 px apart: nothing for
+1.2 s, then the ceiling drops 40 px/s. Stay apart 3 more seconds → 320 - 120 = 200. Come back
+together: it stays 200 for the rest of the phase. The whole budget is (320 - 150) / 40 ≈ **4 seconds**
+of shrinking (plus the 1.2 s grace each time you drift apart) before it hits the 150 floor.
+
+| To make it... | Change |
+|---|---|
+| more forgiving | raise `comfort` (more room before you count as apart) or `shrink_after` (longer grace) |
+| harsher | lower `comfort` / `shrink_after`, or raise `shrink_speed` |
+| bottom out shorter or longer | `leash_floor` (the smallest the ceiling can get) |
+| switch it off | `shrink_after` = 0 |
+| start shorter | `max_length` |
+
+Rules of thumb:
+- Keep `leash_floor` ≤ `max_length` (a higher floor is treated as `max_length`, so nothing shrinks - that's
+  how phase III has it off).
+- `rest_length` above the current ceiling is ignored - the cord rests at the ceiling instead.
+- If `comfort` is *smaller* than `rest_length` (phase II: 110 vs 150), a fully relaxed cord already counts as
+  "apart", so standing still at full rest length slowly eats the budget. Intended pressure in phase II;
+  set `comfort` ≥ `rest_length` if you don't want that.
+- The cord turns hotter/redder as the ceiling gets shorter, so the player can see the memory.
+- While testing: **F5** puts the ceiling back to the phase's `max_length`; **Shift+F1** shows the live
+  cord length and ceiling ("cap").
 
 Slack you give with RMB is capped by the current cord ceiling. How fast slack pays out
 (`slack_speed`) and how fast you reel (`reel_speed`) are on the **Tether** node, because
@@ -100,8 +145,7 @@ Each character draws its placeholder shape until you give it art.
 4. Line it up: `sprite_offset` moves the art relative to the body, `sprite_scale` resizes it, and `sprite_faces_right` says which way your art faces (it flips automatically).
 5. Make the **collision** match the art: `shape` (RECT/CIRCLE) and `size` on the same node.
 
-What still works with sprites: jump/land squash, the reel tremble, flipping into the partner's
-art during a phase III swap glitch (if both have sprites), the colour bleed tint, and greying
+What still works with sprites: jump/land squash, the reel tremble, and greying
 out when left behind. The "you" marker and "..." still draw on top.
 
 ## 3. Phase III pull-back and tug
@@ -140,6 +184,8 @@ Use **F4** (slow-motion) to watch a tug frame by frame.
 - Any phase can use any behaviour: e.g. give phase II a mild tug (`tug_enabled`, high `tug_force`) or phase I a little `predict`.
 - **Add a phase IV:** duplicate a `.tres`, edit it, add it as the 4th entry of the TetherRig's `phase_profiles`, and place a PHASE zone with `phase = 4`.
 - Phases only escalate; the cord's memory survives respawns.
+- **Severing (hold Q)** only works in phases with `can_sever` ticked (Cord group). Only phase III has it on.
+  `TetherRig.sever_tether()` from a DialogueCall still cuts the cord in any phase.
 
 ### Debug keys (TetherRig → Debug → `debug_tools`; turn off before sharing a build)
 | Key | Does |
@@ -188,7 +234,8 @@ and `speaker` (GIRL/BOY for dialogue).
 
 ### Cord, shared (Tether node)
 `reel_speed`, `slack_speed`, `reel_max_force`, `reel_brace` (extra grip while reeling),
-`break_force` / `break_time` (when it snaps), `stiffness` / `damping` (elasticity),
+`can_break` (off = the cord only breaks when the player holds Sever; on = it can also snap
+from strain), `break_force` / `break_time` (when it snaps, only used if `can_break` is on), `stiffness` / `damping` (elasticity),
 `anchor_range` (ring hook reach), `sever_hold_time`, plus the **Reel / slack feedback**
 group (tints, shimmer, flow dots, `reel_sound` / `slack_sound` and their volumes).
 
@@ -196,6 +243,10 @@ group (tints, shimmer, flow dots, `reel_sound` / `slack_sound` and their volumes
 Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`,
 `sever_speed_mult` / `sever_jump_mult` (how good movement feels after severing), and
 `fall_respawn_depth`.
+- **Messages**: `sever_message` (shown when the cord is cut, "It's over.") and `fall_messages` - when anyone falls
+  to their death one line is picked at random (never the same twice in a row). Add, remove or edit lines in the list.
+- **Sever** and **Audio** groups: the cut sound, `on_sever` steps, level music/ambience and game-event sounds.
+  See `AUDIO_GUIDE.md`.
 
 ### Art: the meadow look (Level1_Visual)
 `Scenes/Level1_Visual.tscn` is Level1 with art applied - same layout, triggers and dialogue. Purely visual:
@@ -226,6 +277,34 @@ and the two fireworks were lowered 13 px / 1 px so they stand on the ground.
 - Small hill blocks (I_Ground23/30-42 that make the ground uneven) sit at the top of the `Level` list so they draw
   behind the main ground - in Godot the lower a node is in the list, the more in front it draws.
 
+### Art: the deep forest (Level3_Visual)
+`Scenes/Level3_Visual.tscn` is Level3 with art applied - same layout and triggers, built from Level3. Differences:
+WallLeft is gone (replaced by `Decor/StartTree` + `Bounds/LeftBorder`, same as Level2_Visual; Level3's floor already
+runs far enough left), a bare dead tree at the end (`Decor/DeadTree`), tall decor trees on wide platforms
+(`Decor/Tree_A`..`H`, no collision; D and G are dead), and the five fireworks lowered 1-6 px to stand on the ground.
+The branches in this level have grey-brown dead leaves (`leaf_color` changed on each copy; everything else still
+follows the prefab).
+- **LevelArt → Deep forest** (used when `backdrop` = DEEP_FOREST):
+  - `trunk_rows` / `trunk_density`: how many rows of trunks and how crowded they are.
+  - `trunk_far` / `trunk_near`: trunk colour in the farthest row (lost in the fog) and the nearest one.
+  - `fog` (between the rows), `ground_fog` (low on the forest floor), `front_fog` (drifting in FRONT of the level
+    along the bottom of the screen - keep it low or platforms get hard to read). Fog colour is `haze`.
+  - `canopy` + `canopy_color`: the leaves shading the top of the screen (0 = none).
+  - `light_shafts`, `shaft_color`, `shaft_opacity`: the dim light falling through the leaves (0 = none).
+- **LevelArt → Screen finish → `desaturate`**: drains colour from the whole picture (0.82 here = almost black and
+  white). Strong colours (yellow rings and rocket bands, the cord) keep a little of theirs so they stay readable.
+  `desaturate_tint` is the colour the grey leans toward. Level1/Level2 leave it at 0.
+- **Dead trees**: any MeadowTree with `leaves` unticked is bare branches with twigs; its wood colour is `leaf_color`.
+- Level3 and Level3_Visual are separate files: layout edits to one do NOT carry over to the other.
+- A boulder stacked on another (Test_KeyBarrier6) has `base_grass` off so no grass floats under it. Untick it
+  on any boulder that isn't sitting on the ground.
+
+### Foreground (all *_Visual levels, LevelArt → Foreground grass)
+- `foreground_fade_after_fall` / `foreground_fade_distance`: the grass and big trunks in front stay locked to the
+  camera (jumps and drops to lower ground change nothing). Fall more than `fade_after_fall` px below where you last
+  stood (into a pit) and they fade out over the next `fade_distance` px, then fade back in once you're standing.
+- `foreground_tree_see_through`: a foreground trunk fades to this opacity while either character is behind it.
+
 ### Prefabs - edit one file, every copy follows
 Each copy in a level only stores its position (and anything you change on that copy, shown with a ↺ revert
 arrow in the Inspector). To change all of them, open the prefab and edit its root node.
@@ -239,7 +318,7 @@ arrow in the Inspector). To change all of them, open the prefab and edit its roo
   `launch_sound` (flight), `impact_sound` (obstacle destroyed). Connect targets as for KeyItem below. Place it so
   its stick ends on the ground: the rocket's centre is 22 px above the surface.
 - **Ring** `Scenes/Prefabs/tether_anchor.tscn` (TetherAnchor): `hook_sound` (cord hooks on) and `release_sound`,
-  each with a volume. Used by every ring in Level1_Visual and Level2_Visual. (Ring colour/glow there is set by
+  each with a volume. Used by every ring in Level1_Visual, Level2_Visual and Level3_Visual. (Ring colour/glow there is set by
   LevelArt's `ring_color`/`ring_glow`.)
 
 ### Level pieces
@@ -268,6 +347,7 @@ arrow in the Inspector). To change all of them, open the prefab and edit its roo
 - Ending text is in `Scripts/main.gd` (the TetherRig script) → `_check_zones()` (search "You stayed").
 
 ### Audio
+- **Full guide: `AUDIO_GUIDE.md`** (music, ambience, triggers, the sever moment, every sound slot).
 - Bus volumes: pause menu sliders, or the **Audio** panel at the bottom of the editor (buses: Master, Music, Sfx).
 - Dialogue blip loudness: each DialogueLine's `text_volume` (default -10 dB).
 - Controls: `Scripts/main.gd` → `_ensure_input()`, or define the same action names in Project Settings → Input Map (those win).

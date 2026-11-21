@@ -1,0 +1,1446 @@
+[gd_scene load_steps=71 format=4 uid="uid://cg2nj71735v24"]
+
+[ext_resource type="Script" uid="uid://46n84pblytya" path="res://Scripts/Level/block.gd" id="1_t5kwq"]
+[ext_resource type="Script" uid="uid://dlvuyxe3gesya" path="res://Scripts/Level/crumble_block.gd" id="2_ms3ee"]
+[ext_resource type="PackedScene" path="res://Scenes/Prefabs/key_item.tscn" id="3_ktnig"]
+[ext_resource type="Script" uid="uid://bq5cjco7ndl7o" path="res://Scripts/Dialogue/dialogue_trigger.gd" id="4_nfsas"]
+[ext_resource type="Script" uid="uid://dhkojp4r1n4od" path="res://Scripts/Dialogue/dialogue_step.gd" id="5_xxw0v"]
+[ext_resource type="Script" uid="uid://db5usgj86trk6" path="res://Scripts/Dialogue/dialogue_wait.gd" id="6_5pcch"]
+[ext_resource type="Script" uid="uid://cas25ucq1e4dg" path="res://Scripts/Dialogue/dialogue_line.gd" id="7_85b6l"]
+[ext_resource type="AudioStream" uid="uid://bdgwwfpkew03v" path="res://Audio/Voices/girlVoice.wav" id="8_qq3uj"]
+[ext_resource type="AudioStream" uid="uid://bdojrnf1u1yj1" path="res://Audio/Voices/boyVoice.wav" id="9_e63ni"]
+[ext_resource type="Script" path="res://Scripts/Dialogue/dialogue_fade.gd" id="10_bnsu8"]
+[ext_resource type="Script" uid="uid://dmn171fwmr3bv" path="res://Scripts/Dialogue/dialogue_call.gd" id="11_al7xm"]
+[ext_resource type="PackedScene" uid="uid://jhe5tp6un702" path="res://Scenes/Prefabs/tether_rig.tscn" id="12_81bqa"]
+[ext_resource type="Script" uid="uid://wa3ylqlg5il6" path="res://Scripts/Level/zone.gd" id="13_yi7gs"]
+[ext_resource type="Script" uid="uid://catlhkupy8d5i" path="res://Scripts/Level/anchor.gd" id="14_dg25f"]
+[ext_resource type="PackedScene" path="res://Scenes/Prefabs/level_exit.tscn" id="15_ffujx"]
+
+[sub_resource type="Resource" id="Resource_o0dvq"]
+script = ExtResource("6_5pcch")
+seconds = 0.8
+
+[sub_resource type="Resource" id="Resource_ug0sv"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Hey."
+text_sound = ExtResource("9_e63ni")
+appear_time = 2.0
+
+[sub_resource type="Resource" id="Resource_0wsr5"]
+script = ExtResource("7_85b6l")
+message = "Oh, hey."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 2.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_ycmr1"]
+data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
+format = 3
+
+[sub_resource type="Resource" id="Resource_2jwna"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "You ready?"
+text_sound = SubResource("AudioStreamWAV_ycmr1")
+appear_time = 2.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_1je60"]
+data = PackedByteArray("cW9hZgAAAO8BAKxEAO8AeAAAAAAAAAAAAAAAAOAAQACta0EQCGCiU3BEp7cRrJBVS155wcyB/aZM2OP0XsJSqFDML7RdamTbTViVSsl4R15shSmWWgQwlVMILBBL7KTCVBMKJvpJOuBQi5E4gIP1HVYKQXaCAbJ7Tdj9Z1cDByA=")
+format = 3
+
+[sub_resource type="Resource" id="Resource_ycmr1"]
+script = ExtResource("7_85b6l")
+message = "Yeah."
+text_sound = SubResource("AudioStreamWAV_1je60")
+appear_time = 2.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_2jwna"]
+data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
+format = 3
+
+[sub_resource type="Resource" id="Resource_sgc6j"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Alright, let's go."
+text_sound = SubResource("AudioStreamWAV_2jwna")
+appear_time = 2.0
+
+[sub_resource type="Resource" id="Resource_revfade"]
+script = ExtResource("10_bnsu8")
+duration = 2.0
+
+[sub_resource type="Resource" id="Resource_revback"]
+script = ExtResource("11_al7xm")
+target = NodePath("../../TetherRig")
+method = &"tether_behind_characters"
+
+[sub_resource type="Resource" id="Resource_06um6"]
+script = ExtResource("11_al7xm")
+target = NodePath("../../TetherRig")
+method = &"show_title"
+args = ["Threshold", "89 months together..."]
+metadata/_custom_type_script = "uid://dmn171fwmr3bv"
+
+[sub_resource type="Resource" id="Resource_jgorv"]
+script = ExtResource("7_85b6l")
+message = "A little help?"
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_q1ws5"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Oh, right."
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_t5kwq"]
+data = PackedByteArray("cW9hZgAAAO8BAKxEAO8AeAAAAAAAAAAAAAAAAOAAQACta0EQCGCiU3BEp7cRrJBVS155wcyB/aZM2OP0XsJSqFDML7RdamTbTViVSsl4R15shSmWWgQwlVMILBBL7KTCVBMKJvpJOuBQi5E4gIP1HVYKQXaCAbJ7Tdj9Z1cDByA=")
+format = 3
+
+[sub_resource type="Resource" id="Resource_ms3ee"]
+script = ExtResource("7_85b6l")
+message = "Thanks."
+text_sound = SubResource("AudioStreamWAV_t5kwq")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_ulvkb"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Let me do this."
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_yji5v"]
+script = ExtResource("7_85b6l")
+message = "No, it's okay I got it."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_bhaf5"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Are you upset?"
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_384de"]
+script = ExtResource("7_85b6l")
+message = "No."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_xx40l"]
+data = PackedByteArray("cW9hZgAAAO8BAKxEAO8AeAAAAAAAAAAAAAAAAOAAQACta0EQCGCiU3BEp7cRrJBVS155wcyB/aZM2OP0XsJSqFDML7RdamTbTViVSsl4R15shSmWWgQwlVMILBBL7KTCVBMKJvpJOuBQi5E4gIP1HVYKQXaCAbJ7Tdj9Z1cDByA=")
+format = 3
+
+[sub_resource type="Resource" id="Resource_utdxf"]
+script = ExtResource("7_85b6l")
+message = "I'm fine."
+text_sound = SubResource("AudioStreamWAV_xx40l")
+appear_time = 1.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_utdxf"]
+data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
+format = 3
+
+[sub_resource type="Resource" id="Resource_8wk15"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "...okay."
+text_sound = SubResource("AudioStreamWAV_utdxf")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_bqkvc"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Hey, what's wrong?"
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_1nrjw"]
+script = ExtResource("7_85b6l")
+message = "Nothing."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_iu5qg"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "C'mon. We gotta stick together."
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.5
+
+[sub_resource type="Resource" id="Resource_4rcpl"]
+script = ExtResource("7_85b6l")
+message = "[b]Okay.[/b] Why're you being so difficult?"
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.5
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_8wk15"]
+data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
+format = 3
+
+[sub_resource type="Resource" id="Resource_bgqvi"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]Huh?[/shake] I'm trying my best here."
+text_sound = SubResource("AudioStreamWAV_8wk15")
+appear_time = 1.5
+
+[sub_resource type="Resource" id="Resource_8tdsi"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "You ready?"
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_ek3m4"]
+script = ExtResource("7_85b6l")
+message = "Huh? Oh. Yeah let's just go."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_bgqvi"]
+data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
+format = 3
+
+[sub_resource type="Resource" id="Resource_6cjmx"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "..."
+text_sound = SubResource("AudioStreamWAV_bgqvi")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_3ybmp"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "You can tell me what's bothering you."
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_euove"]
+script = ExtResource("7_85b6l")
+message = "Yeah. I know."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_ghekl"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]We can still make it work, right?"
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_3ocbn"]
+script = ExtResource("7_85b6l")
+message = "[shake]..."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_6jj8j"]
+data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
+format = 3
+
+[sub_resource type="Resource" id="Resource_aj8od"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]Hey, come on. Don't give up on us."
+text_sound = SubResource("AudioStreamWAV_6jj8j")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_sruox"]
+script = ExtResource("7_85b6l")
+message = "[shake]I-I don't know.[/shake] It's just getting so difficult."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_8hygi"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]Difficult? About what? Being with me?"
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="AudioStreamWAV" id="AudioStreamWAV_ug0sv"]
+data = PackedByteArray("cW9hZgAAAO8BAKxEAO8AeAAAAAAAAAAAAAAAAOAAQACta0EQCGCiU3BEp7cRrJBVS155wcyB/aZM2OP0XsJSqFDML7RdamTbTViVSsl4R15shSmWWgQwlVMILBBL7KTCVBMKJvpJOuBQi5E4gIP1HVYKQXaCAbJ7Tdj9Z1cDByA=")
+format = 3
+
+[sub_resource type="Resource" id="Resource_6pomb"]
+script = ExtResource("7_85b6l")
+message = "[shake]..."
+text_sound = SubResource("AudioStreamWAV_ug0sv")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_s6bta"]
+script = ExtResource("7_85b6l")
+message = "Look. I think..."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_lt7tp"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "Yeah...?"
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_6skh4"]
+script = ExtResource("7_85b6l")
+message = "I don't think this is working."
+text_sound = SubResource("AudioStreamWAV_ug0sv")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_ibolw"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]W-What? What're you saying?"
+text_sound = SubResource("AudioStreamWAV_6jj8j")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_0way5"]
+script = ExtResource("7_85b6l")
+message = "[shake]I'm sorry."
+text_sound = ExtResource("8_qq3uj")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_cw30w"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]..."
+text_sound = ExtResource("9_e63ni")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_uxnm3"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "That's it, then?"
+text_sound = SubResource("AudioStreamWAV_6jj8j")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_ie22q"]
+script = ExtResource("7_85b6l")
+message = "[shake]I'm so sorry."
+text_sound = SubResource("AudioStreamWAV_ug0sv")
+appear_time = 1.0
+
+[sub_resource type="Resource" id="Resource_xxw0v"]
+script = ExtResource("11_al7xm")
+target = NodePath("../../TetherRig")
+method = &"show_message"
+args = ["Hold [Q] to sever Tether", 1.5]
+metadata/_custom_type_script = "uid://dmn171fwmr3bv"
+
+[sub_resource type="Resource" id="Resource_5pcch"]
+script = ExtResource("7_85b6l")
+message = "[shake]. . ."
+text_speed = 2.0
+text_sound = ExtResource("8_qq3uj")
+appear_time = 2.0
+
+[sub_resource type="Resource" id="Resource_85b6l"]
+script = ExtResource("7_85b6l")
+speaker = 1
+message = "[shake]. . ."
+text_speed = 2.0
+text_sound = ExtResource("9_e63ni")
+appear_time = 2.0
+
+[node name="Level3" type="Node2D"]
+
+[node name="Level" type="Node2D" parent="."]
+
+[node name="WallLeft" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(-400, -800)
+script = ExtResource("1_t5kwq")
+size = Vector2(200, 1200)
+
+[node name="I_Ground" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(-1680, 0)
+script = ExtResource("1_t5kwq")
+size = Vector2(2704, 720)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground36" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(376, -16)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground37" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(288, -24)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground38" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(473, -32)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground39" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1174, -131)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground40" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1086, -139)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground41" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1271, -147)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground42" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1628, -257)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground43" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1540, -265)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground44" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1725, -273)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground91" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1875, -256)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 731)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground45" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(2247, -384)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 741)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground46" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(2065, -386)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground47" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(2344, -395)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground48" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(4949, -392)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground49" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(4861, -400)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground50" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5075, -393)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground51" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5334, -386)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground52" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5246, -394)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground53" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5442, -383)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground54" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5714, -287)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground55" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5626, -295)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground56" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5864, -291)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground57" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6117, -289)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground58" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6029, -297)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground59" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6214, -305)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground60" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6858, -188)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground61" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6770, -196)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground62" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6955, -204)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground63" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6490, -192)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground64" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6402, -200)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground65" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6619, -189)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground66" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9217, -150)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground67" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9129, -158)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground68" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9314, -166)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground69" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10103, -184)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground70" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10015, -192)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground71" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10200, -200)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground75" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14062, -456)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 742)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground76" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13974, -458)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground77" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14159, -466)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground80" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14657, -563)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground89" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14899, -568)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 741)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground81" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14569, -571)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground82" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14754, -579)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground83" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15182, -654)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground84" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15094, -662)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground85" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15279, -670)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground90" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15433, -656)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 738)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground86" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15775, -751)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground87" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15624, -759)
+script = ExtResource("1_t5kwq")
+size = Vector2(185, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground88" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15872, -767)
+script = ExtResource("1_t5kwq")
+size = Vector2(135, 752)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground78" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14390, -458)
+script = ExtResource("1_t5kwq")
+size = Vector2(114, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground79" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14284, -455)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 734)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground72" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11604, -138)
+script = ExtResource("1_t5kwq")
+size = Vector2(120, 736)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground73" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11516, -146)
+script = ExtResource("1_t5kwq")
+size = Vector2(122, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground74" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11701, -136)
+script = ExtResource("1_t5kwq")
+size = Vector2(67, 734)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground2" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1017, -128)
+script = ExtResource("1_t5kwq")
+size = Vector2(455, 848)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground3" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(1458, -248)
+script = ExtResource("1_t5kwq")
+size = Vector2(560, 968)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground4" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(2013, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(603, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground5" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(2787, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(173, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground6" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(3139, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(173, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground7" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(3472, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(173, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground8" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(3906, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(173, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground9" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(4331, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(173, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground10" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(4750, -376)
+script = ExtResource("1_t5kwq")
+size = Vector2(834, 1096)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground11" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(5575, -280)
+script = ExtResource("1_t5kwq")
+size = Vector2(834, 1000)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground12" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(6405, -176)
+script = ExtResource("1_t5kwq")
+size = Vector2(834, 896)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground13" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9100, -144)
+script = ExtResource("1_t5kwq")
+size = Vector2(374, 864)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground14" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9653, -176)
+script = ExtResource("1_t5kwq")
+size = Vector2(835, 896)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground17" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10536, -192)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 912)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground19" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10643, -240)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 960)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground20" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10737, -280)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 1000)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground21" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(10907, -280)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 1000)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground23" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11253, -184)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 904)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground24" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11387, -152)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 872)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground25" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11508, -128)
+script = ExtResource("1_t5kwq")
+size = Vector2(276, 848)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground22" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11033, -184)
+script = ExtResource("1_t5kwq")
+size = Vector2(64, 904)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground16" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11838, -176)
+script = ExtResource("1_t5kwq")
+size = Vector2(793, 32)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground26" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12520, -232)
+script = ExtResource("1_t5kwq")
+size = Vector2(111, 88)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground18" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(11838, -32)
+script = ExtResource("1_t5kwq")
+size = Vector2(794, 744)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground27" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12626, -80)
+script = ExtResource("1_t5kwq")
+size = Vector2(102, 792)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground28" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12728, -184)
+script = ExtResource("1_t5kwq")
+size = Vector2(181, 896)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground29" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12909, -320)
+script = ExtResource("1_t5kwq")
+size = Vector2(155, 1032)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground31" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13056, -360)
+script = ExtResource("1_t5kwq")
+size = Vector2(216, 1072)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground30" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13945, -448)
+script = ExtResource("1_t5kwq")
+size = Vector2(551, 1160)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground32" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(14494, -560)
+script = ExtResource("1_t5kwq")
+size = Vector2(551, 1272)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground33" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15040, -648)
+script = ExtResource("1_t5kwq")
+size = Vector2(554, 1360)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground34" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(15592, -744)
+script = ExtResource("1_t5kwq")
+size = Vector2(553, 1456)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground35" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(16136, -888)
+script = ExtResource("1_t5kwq")
+size = Vector2(2592, 1600)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="I_Ground15" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9465, -8)
+script = ExtResource("1_t5kwq")
+size = Vector2(191, 728)
+color = Color(0.5568628, 0.8666667, 0.15686275, 1)
+
+[node name="II_Crumble2" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7239, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble11" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13848, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble12" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13752, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble13" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13656, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble14" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13560, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble15" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13464, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble16" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13368, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble17" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(13272, -356)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble3" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7335, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble4" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7431, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble5" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7527, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble6" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7623, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble7" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7719, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble8" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7815, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble9" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(7911, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble10" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8007, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble18" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8238, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble27" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9608, -79)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble28" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9441, -121)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble29" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9608, -172)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble19" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8334, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble20" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8430, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble21" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8526, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble22" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8622, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble23" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8718, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble24" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8814, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble25" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(8910, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="II_Crumble26" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9006, -140)
+script = ExtResource("2_ms3ee")
+size = Vector2(96, 24)
+
+[node name="Test_KeyBarrier" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(9786, -374)
+script = ExtResource("1_t5kwq")
+size = Vector2(191, 200)
+color = Color(0.42, 0.3, 0.33, 1)
+
+[node name="Test_Key" parent="Level" instance=ExtResource("3_ktnig")]
+texture_filter = 4
+position = Vector2(9560, -24)
+targets = Array[NodePath]([NodePath("../Test_KeyBarrier")])
+color = Color(1, 0.8156863, 0, 1)
+
+[node name="Test_KeyBarrier3" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12051, -375)
+script = ExtResource("1_t5kwq")
+size = Vector2(191, 200)
+color = Color(0.42, 0.3, 0.33, 1)
+
+[node name="Test_Key3" parent="Level" instance=ExtResource("3_ktnig")]
+texture_filter = 4
+position = Vector2(12025, -53)
+targets = Array[NodePath]([NodePath("../Test_KeyBarrier3")])
+color = Color(1, 0.8156863, 0, 1)
+
+[node name="Test_KeyBarrier5" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12630, -184)
+script = ExtResource("1_t5kwq")
+size = Vector2(66, 105)
+color = Color(0.42, 0.3, 0.33, 1)
+
+[node name="Test_Key5" parent="Level" instance=ExtResource("3_ktnig")]
+texture_filter = 4
+position = Vector2(12553, -254)
+targets = Array[NodePath]([NodePath("../Test_KeyBarrier5")])
+color = Color(1, 0.8156863, 0, 1)
+
+[node name="Test_KeyBarrier6" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12630, -385)
+script = ExtResource("1_t5kwq")
+size = Vector2(191, 201)
+color = Color(0.42, 0.3, 0.33, 1)
+
+[node name="Test_Key6" parent="Level" instance=ExtResource("3_ktnig")]
+texture_filter = 4
+position = Vector2(12712, -101)
+targets = Array[NodePath]([NodePath("../Test_KeyBarrier6")])
+color = Color(1, 0.8156863, 0, 1)
+
+[node name="Test_KeyBarrier4" type="StaticBody2D" parent="Level"]
+texture_filter = 4
+position = Vector2(12245, -144)
+script = ExtResource("1_t5kwq")
+size = Vector2(139, 117)
+color = Color(0.42, 0.3, 0.33, 1)
+
+[node name="Test_Key4" parent="Level" instance=ExtResource("3_ktnig")]
+texture_filter = 4
+position = Vector2(12325, -197)
+targets = Array[NodePath]([NodePath("../Test_KeyBarrier4")])
+color = Color(1, 0.8156863, 0, 1)
+
+[node name="Dialogue" type="Node2D" parent="."]
+
+[node name="Intro" type="Area2D" parent="Dialogue"]
+position = Vector2(-160, -140)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_o0dvq"), SubResource("Resource_ug0sv"), SubResource("Resource_0wsr5"), SubResource("Resource_2jwna"), SubResource("Resource_ycmr1"), SubResource("Resource_sgc6j"), SubResource("Resource_revfade"), SubResource("Resource_revback"), SubResource("Resource_06um6")])
+size = Vector2(300, 160)
+debug = true
+
+[node name="D1" type="Area2D" parent="Dialogue"]
+position = Vector2(825, -140)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_jgorv"), SubResource("Resource_q1ws5"), SubResource("Resource_ms3ee")])
+size = Vector2(300, 160)
+
+[node name="D2" type="Area2D" parent="Dialogue"]
+position = Vector2(3498, -517)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_ulvkb"), SubResource("Resource_yji5v")])
+size = Vector2(300, 160)
+
+[node name="D3" type="Area2D" parent="Dialogue"]
+position = Vector2(1194, -276)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_bhaf5"), SubResource("Resource_384de"), SubResource("Resource_utdxf"), SubResource("Resource_8wk15")])
+size = Vector2(174, 160)
+
+[node name="D4" type="Area2D" parent="Dialogue"]
+position = Vector2(4882, -520)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_bqkvc"), SubResource("Resource_1nrjw")])
+size = Vector2(300, 160)
+
+[node name="D5" type="Area2D" parent="Dialogue"]
+position = Vector2(11249, -312)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_iu5qg"), SubResource("Resource_4rcpl"), SubResource("Resource_bgqvi")])
+size = Vector2(300, 160)
+
+[node name="D6" type="Area2D" parent="Dialogue"]
+position = Vector2(6910, -322)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_8tdsi"), SubResource("Resource_ek3m4"), SubResource("Resource_6cjmx")])
+size = Vector2(300, 160)
+
+[node name="D7" type="Area2D" parent="Dialogue"]
+position = Vector2(9995, -325)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_3ybmp"), SubResource("Resource_euove")])
+size = Vector2(300, 160)
+
+[node name="D8" type="Area2D" parent="Dialogue"]
+position = Vector2(14509, -715)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_ghekl"), SubResource("Resource_3ocbn"), SubResource("Resource_aj8od")])
+size = Vector2(300, 160)
+
+[node name="D9" type="Area2D" parent="Dialogue"]
+position = Vector2(13987, -594)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_sruox"), SubResource("Resource_8hygi"), SubResource("Resource_6pomb")])
+size = Vector2(300, 160)
+
+[node name="D10" type="Area2D" parent="Dialogue"]
+position = Vector2(12921, -520)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_s6bta"), SubResource("Resource_lt7tp"), SubResource("Resource_6skh4"), SubResource("Resource_ibolw")])
+size = Vector2(300, 160)
+
+[node name="D11" type="Area2D" parent="Dialogue"]
+position = Vector2(15635, -892)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_0way5"), SubResource("Resource_cw30w"), SubResource("Resource_uxnm3"), SubResource("Resource_ie22q"), SubResource("Resource_xxw0v")])
+size = Vector2(300, 160)
+
+[node name="D12" type="Area2D" parent="Dialogue"]
+position = Vector2(16161, -1038)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("4_nfsas")
+steps = Array[ExtResource("5_xxw0v")]([SubResource("Resource_5pcch"), SubResource("Resource_85b6l")])
+size = Vector2(300, 160)
+
+[node name="OriginalPosition2" type="Node2D" parent="."]
+
+[node name="TetherRig" parent="." instance=ExtResource("12_81bqa")]
+start_black = true
+
+[node name="Ember" parent="TetherRig" index="1"]
+jump_height = 130.0
+mass = 1.1
+
+[node name="Message" parent="TetherRig/HUD" index="1"]
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 2
+
+[node name="Zones" type="Node2D" parent="."]
+
+[node name="CP1" type="Area2D" parent="Zones"]
+position = Vector2(2528, -510)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="CP2" type="Area2D" parent="Zones"]
+position = Vector2(3559, -505)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="CP4" type="Area2D" parent="Zones"]
+position = Vector2(7161, -312)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="CP3" type="Area2D" parent="Zones"]
+position = Vector2(10417, -302)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="CP5" type="Area2D" parent="Zones"]
+position = Vector2(11251, -310)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="CP6" type="Area2D" parent="Zones"]
+position = Vector2(13206, -497)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="CP7" type="Area2D" parent="Zones"]
+position = Vector2(13967, -584)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+phase = 1
+
+[node name="Anchors" type="Node2D" parent="."]
+
+[node name="I_Ring2" type="Node2D" parent="Anchors"]
+position = Vector2(3769, -487)
+script = ExtResource("14_dg25f")
+glow = true
+
+[node name="I_Ring5" type="Node2D" parent="Anchors"]
+position = Vector2(4198, -487)
+script = ExtResource("14_dg25f")
+glow = true
+
+[node name="I_Ring6" type="Node2D" parent="Anchors"]
+position = Vector2(4644, -487)
+script = ExtResource("14_dg25f")
+glow = true
+
+[node name="I_Ring3" type="Node2D" parent="Anchors"]
+position = Vector2(11180, -293)
+script = ExtResource("14_dg25f")
+
+[node name="I_Ring4" type="Node2D" parent="Anchors"]
+position = Vector2(12864, -376)
+script = ExtResource("14_dg25f")
+
+[node name="LevelExit" parent="." instance=ExtResource("15_ffujx")]
+position = Vector2(17053, -1035)
+next_scene = "prototype"
+
+[node name="Phase_II" type="Area2D" parent="."]
+position = Vector2(10006, -666)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+kind = 2
+size = Vector2(40, 504)
+
+[node name="Phase_II2" type="Area2D" parent="."]
+position = Vector2(13970, -913)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("13_yi7gs")
+kind = 2
+size = Vector2(40, 504)
+phase = 3
+
+[editable path="TetherRig"]

@@ -70,9 +70,10 @@ format = 3
 
 [sub_resource type="Resource" id="Resource_6jj8j"]
 script = ExtResource("5_0wsr5")
-message = "..."
-text_speed = 15.0
+message = ". . ."
+text_speed = 2.0
 text_sound = SubResource("AudioStreamWAV_rpty4")
+appear_time = 3.0
 
 [sub_resource type="AudioStreamWAV" id="AudioStreamWAV_06um6"]
 data = PackedByteArray("cW9hZgAACi8BAKxECi8EMAAAAAAAAAAAAAAAAOAAQACtWQSiQGEWE1xFSdy6IefmW+Ip1bpp7hBmi0ncaIyCmFIVEsoAJVUbWVwNVQ1MTnBaiSAWkuc6g0k5U/2vgefSSvK2EotohGhEA2A1CWygQUCV8ho1Y1sTVhNAFhxmCmFGwYm00AwG1EQdIRaibXcjQ4WlRkhJtElQCSkHQlUUC0e6hKdM1oljRmRc1BEJOsZRSo2CgLZAWFBZRuS0jbgUXNFEiNFtRkg4bASadm7KckbUPMnkvWoVRSuGlZkhvNtTk30oSqyoj0DUgL4QTSBtYwkokMoAsIVBlygE39n3BFLDKDU5JEIdV5UGpEE2J1JAbcuIm6Iiel1YBQohohbhVoJlmLjFq2RKATuygg1PYkLCKT8VamtqVLpBlBoP7d5HXLEwBQANaETQKNSolirQZpUJdI2J1AhnsDi8PMGTFVenBIQNGbYwX3TwdSnUS2NTnVqW4q9OwmKZMNSPypTAQFMK3bmjHzNG7E1Oc+FN/EVq0dFUPEQtTb+CwsYPlNJWYLUAukW00UTYT6hFKJXGUc6oV4hkiiJE329p+UjNfVDmpVMbSLeVVy3b3CkhSkJG2UJL8ww8u1SAr1cVTSNEWvFlANxViFxKzCm3hTAWYFbgYTYJWWkiaIuAoF6gAgk7srxmi02ovUipgsPy5QMjS8YNFFlGxMhQKFG3GAQCC0xLIKTBTb09WECgAR1xNpBOc6JXI2CYO0hOFqcZISrJQIFkA9Q+JsM7lwOcB6ESTTCQVvOL29baTB+6NML3IFM+8m3sejSg9kLDqSIcNCFMRCgEoB1RMlk5jQCimwElWDIirakLdGDcMWBPrFgtYcJA+stttsi5hz2gLGrCYUXYPOmIsxUotyI+ca5TtWaEoTdEV+gYLFWFQAtNR+JgAkgyIvc7pSm5XETjbgYBIjqTUNAkEhMkjOlNWiEq0WEjQDZ170bpIJAtSGgEqgGxUwdKoCSCwQi2g0itgpxohbKBPGlMlKnbi848LZBwGIj4iEBZELKBFUPWP/Ap3C3KrP09qyEUmFShREFibhIAapiESTJKMoFFuJo7dvcuE4qkAz8Dm/yoTKALMKzfxOBiOlw5VrUw4C1G9z8zCoTBqhcbONpVTuMQMhgylXFRKGIeETUPBIKVMbQaNkKpAHpMosg3AaGQYOI6Cyh5xYLZruRkNlsouBsIVgg0Cq4q8SGmAjPgsBYQLUbTLzJqsxgSsIAmMxBwDMrxpyKpxerhaTDaJFxJn9bdaHQwQASQ0lMokiaydAoBYV8BJhGQQNgCEBIn1O1HCA6Cdh7X+3GG3Pm3KqFloxMxhKggXXHRGCWEKSRMTKJrTSLaJdOAtRkwdVEp8S6HE6tTcCcoYcYJXaC6KyzrccRfKn4yQUQ2UDPuAEKudgAAAAAA")
@@ -114,7 +115,7 @@ method = &"tether_behind_characters"
 script = ExtResource("10_bdlbp")
 target = NodePath("../../TetherRig")
 method = &"show_title"
-args = ["Honeymoon", "Year 0"]
+args = ["Honeymoon", "3 months together..."]
 metadata/_custom_type_script = "uid://dmn171fwmr3bv"
 
 [sub_resource type="Resource" id="Resource_jgorv"]
@@ -569,7 +570,7 @@ trunk_length = 100.0
 [node name="Bounds" type="Node2D" parent="."]
 
 [node name="LeftBorder" type="StaticBody2D" parent="Bounds"]
-position = Vector2(-240, -1400)
+position = Vector2(-532, -1400)
 
 [node name="Shape" type="CollisionShape2D" parent="Bounds/LeftBorder"]
 position = Vector2(20, 900)
@@ -658,7 +659,7 @@ steps = Array[ExtResource("3_ubfni")]([SubResource("Resource_sruox"), SubResourc
 size = Vector2(300, 160)
 
 [node name="LeftBorderLine" type="Area2D" parent="Dialogue"]
-position = Vector2(-200, -400)
+position = Vector2(-492, -400)
 collision_layer = 0
 collision_mask = 2
 script = ExtResource("2_06um6")

@@ -40,7 +40,7 @@ class Painter extends Node2D:
 @export_range(0.0, 0.3, 0.005) var cloud_parallax := 0.02
 @export var cloud_color := Color(1, 1, 1)
 
-enum Backdrop { MEADOW_HILLS, FOREST_EDGE }
+enum Backdrop { MEADOW_HILLS, FOREST_EDGE, DEEP_FOREST }
 
 @export_group("Background hills")
 ## MEADOW_HILLS: open hills with a few trees (Level1). FOREST_EDGE: tree lines in clumps with
@@ -63,6 +63,27 @@ enum Backdrop { MEADOW_HILLS, FOREST_EDGE }
 @export_range(0, 120) var background_trees := 40
 ## FOREST_EDGE only: how much of the background is woodland vs open plain (0..1).
 @export_range(0.0, 1.0, 0.01) var woodland := 0.55
+
+@export_group("Deep forest (backdrop = DEEP_FOREST)")
+## Rows of tall trunks behind the level, from far (pale, lost in the fog) to near (dark).
+@export_range(1, 6) var trunk_rows := 4
+## How crowded each row is (trunks per 1000 px).
+@export_range(0.5, 12.0, 0.1) var trunk_density := 4.0
+@export var trunk_far := Color("a3a7a3")
+@export var trunk_near := Color("262a28")
+## How thick the fog is between the rows of trunks.
+@export_range(0.0, 1.0, 0.01) var fog := 0.6
+## Fog lying low on the forest floor (behind the level).
+@export_range(0.0, 1.0, 0.01) var ground_fog := 0.5
+## Fog drifting in FRONT of the level, along the bottom of the screen. 0 = off.
+@export_range(0.0, 1.0, 0.01) var front_fog := 0.0
+## The leaf canopy shading the top of the screen.
+@export_range(0.0, 1.0, 0.01) var canopy := 0.75
+@export var canopy_color := Color("121513")
+## Dim shafts of light falling through gaps in the leaves.
+@export_range(0, 12) var light_shafts := 5
+@export var shaft_color := Color("e8e4d4")
+@export_range(0.0, 0.5, 0.005) var shaft_opacity := 0.1
 
 @export_group("Meadow flowers (background)")
 @export_range(0, 2000) var flower_count := 260
@@ -106,6 +127,15 @@ enum Backdrop { MEADOW_HILLS, FOREST_EDGE }
 ## Dark tree trunks passing in front of the level (0 = none), per ~2 screen widths.
 @export_range(0, 6) var foreground_trees := 0
 @export_range(0.0, 1.0, 0.01) var foreground_tree_opacity := 0.92
+## Foreground trees fade to this opacity while a character is behind them, so you never lose
+## sight of the pair (1 = never fade).
+@export_range(0.0, 1.0, 0.01) var foreground_tree_see_through := 0.3
+## The foreground stays locked to the camera (jumps, drops to lower ground: no change). Only
+## when you fall this many px below where you last stood (a real fall into a pit) does it start
+## to fade away, so it doesn't fall all the way down with you. It fades back once you land.
+@export_range(0.0, 1500.0, 10.0) var foreground_fade_after_fall := 260.0
+## Over how many more px of falling it fades out completely.
+@export_range(10.0, 1500.0, 10.0) var foreground_fade_distance := 300.0
 
 @export_group("Characters & rings")
 ## Dark bodies with a rim of light in each character's own colour, glowing eyes.
@@ -121,6 +151,11 @@ enum Backdrop { MEADOW_HILLS, FOREST_EDGE }
 @export_range(0.0, 0.2, 0.005) var grain := 0.03
 @export_range(0.0, 0.01, 0.0005) var color_fringe := 0.0015
 @export var shadow_lift := Color(0.0, 0.01, 0.03)
+## Drains colour from the whole screen (0 = full colour, 1 = black and white). Strong colours
+## like the yellow rings and rocket bands keep a little of theirs.
+@export_range(0.0, 1.0, 0.01) var desaturate := 0.0
+## Colour the greyed-out picture leans toward (white = neutral grey).
+@export var desaturate_tint := Color(1, 1, 1)
 
 var _t := 0.0
 var _cam := Vector2.ZERO
@@ -130,6 +165,10 @@ var _backdrop: Painter
 var _dust: Painter
 var _fg: Painter
 var _sky_mat: ShaderMaterial
+var _dt := 0.0
+var _fg_ground_y := INF   # camera y the last time the controlled body stood on the ground
+var _fg_alpha := 1.0
+var _fg_fade := PackedFloat32Array()  # per foreground tree, 1 = solid, see-through when someone is behind
 
 
 func _ready() -> void:
@@ -156,9 +195,29 @@ func _process(dt: float) -> void:
 		_sky_mat.set_shader_parameter("cloud_offset", Vector2(_cam.x * 0.00012 + _t * cloud_wind * 0.01, 0.0))
 	_backdrop.queue_redraw()
 	_dust.queue_redraw()
+	_dt = dt
 	if _fg:
 		_fg.global_position = _cam
+		_fg.modulate.a = _fg_fall_alpha(dt)
 		_fg.queue_redraw()
+
+
+## 1 while you're near the ground you last stood on; fades to 0 as you fall deeper than
+## foreground_fade_after_fall (into a pit), and back to 1 once you're standing again.
+func _fg_fall_alpha(dt: float) -> float:
+	var grounded := false
+	for b in get_tree().get_nodes_in_group(&"tether_bodies"):
+		if b is Character and (b as Character).controlled and (b as Character).is_on_floor():
+			grounded = true
+	if grounded or _fg_ground_y == INF or _cam.y < _fg_ground_y:
+		_fg_ground_y = _cam.y
+	var fell := _cam.y - _fg_ground_y - foreground_fade_after_fall
+	var target := 1.0 - clampf(fell / foreground_fade_distance, 0.0, 1.0)
+	if target < _fg_alpha:
+		_fg_alpha = target                              # follow the fall exactly
+	else:
+		_fg_alpha = move_toward(_fg_alpha, target, dt * 1.5)  # gentle fade back in after landing / respawn
+	return _fg_alpha
 
 
 # ---------------------------------------------------------------- setup
@@ -251,6 +310,8 @@ func _build() -> void:
 		pm.set_shader_parameter("grain", grain)
 		pm.set_shader_parameter("ca", color_fringe)
 		pm.set_shader_parameter("lift", shadow_lift)
+		pm.set_shader_parameter("desat", desaturate)
+		pm.set_shader_parameter("tint", desaturate_tint)
 
 
 # ---------------------------------------------------------------- world: earth + chasms
@@ -321,6 +382,9 @@ func _paint_backdrop(n: Node2D) -> void:
 	if backdrop == Backdrop.FOREST_EDGE:
 		_paint_forest(n)
 		return
+	if backdrop == Backdrop.DEEP_FOREST:
+		_paint_deep(n)
+		return
 	var zl := lerpf(1.0, _zoom, 0.6)
 	var hy := _horizon()
 	_ridge(n, far_parallax, -40.0, 30.0, 0.0022, 1.0, far_hills)
@@ -383,6 +447,7 @@ func _paint_dust(n: Node2D) -> void:
 	r.seed = 33
 	var tile := Vector2(1600, 1000) / maxf(_zoom, 0.25)
 	var origin := _cam - tile * 0.5
+	_paint_front_fog(n)
 	for i in dust_count:
 		var base := Vector2(r.randf_range(0, tile.x), r.randf_range(0, tile.y))
 		var vel := Vector2(r.randf_range(-dust_speed, dust_speed), r.randf_range(-dust_speed * 0.6, dust_speed * 0.3))
@@ -508,9 +573,17 @@ func _paint_foreground(n: Node2D) -> void:
 func _paint_fg_trees(n: Node2D) -> void:
 	var period := 2800.0
 	var k := _vs.x / 1280.0
-	var col := Color(ground_deep.darkened(0.25), foreground_tree_opacity)
+	var col0 := Color(ground_deep.darkened(0.25), foreground_tree_opacity)
 	var r := RandomNumberGenerator.new()
 	r.seed = 91
+	if _fg_fade.size() != foreground_trees:
+		_fg_fade.resize(foreground_trees)
+		_fg_fade.fill(1.0)
+	# characters in this painter's screen space
+	var bodies := PackedVector2Array()
+	for b in get_tree().get_nodes_in_group(&"tether_bodies"):
+		if b is Node2D:
+			bodies.append(((b as Node2D).global_position - n.global_position) * _zoom + _vs * 0.5)
 	for i in foreground_trees:
 		var u := (float(i) + r.randf_range(0.15, 0.85)) * period / float(foreground_trees)
 		var w := r.randf_range(13.0, 22.0)
@@ -523,9 +596,19 @@ func _paint_fg_trees(n: Node2D) -> void:
 		for j in 9:
 			leaves.append(Vector3(r.randf_range(-120.0, 120.0), r.randf_range(-60.0, -5.0), r.randf_range(26.0, 50.0)))
 		if sx < -260.0 or sx > _vs.x + 260.0:
+			_fg_fade[i] = 1.0
 			continue
 		var base := _vs.y + 20.0
 		var top := -40.0
+		var behind := false
+		for p in bodies:
+			var t := clampf(1.0 - (p.y - top) / (base - top), 0.0, 1.0)
+			var bx := sx + lean * t
+			var half := lerpf(w * 1.6, w * 0.5, t) + 34.0 * _zoom
+			if absf(p.x - bx) < half or (p.y < 70.0 and absf(p.x - (sx + lean)) < 170.0):
+				behind = true
+		_fg_fade[i] = move_toward(_fg_fade[i], foreground_tree_see_through if behind else 1.0, _dt * 4.0)
+		var col := Color(col0, col0.a * _fg_fade[i])
 		FastDraw.quad(n, PackedVector2Array([Vector2(sx - w * 1.6, base), Vector2(sx + w * 1.6, base),
 			Vector2(sx + w * 0.5 + lean, top), Vector2(sx - w * 0.5 + lean, top)]), PackedColorArray([col]))
 		for st in stubs:
@@ -534,3 +617,166 @@ func _paint_fg_trees(n: Node2D) -> void:
 			FastDraw.tri(n, Vector2(bx, st.x - 3.5), Vector2(bx, st.x + 3.5), Vector2(bx + st.z * st.y, st.x - st.y * 0.6), col)
 		for lf in leaves:
 			FastDraw.circle(n, Vector2(sx + lean + lf.x, lf.y), lf.z, col)
+
+
+# ---------------------------------------------------------------- deep forest backdrop
+
+## Rows of tall trunks fading into fog, a leaf canopy at the top and dim shafts of light.
+func _paint_deep(n: Node2D) -> void:
+	var zl := lerpf(1.0, _zoom, 0.6)
+	var hy := _horizon()
+	var rows := maxi(trunk_rows, 1)
+	n.draw_rect(Rect2(0, 0, _vs.x, _vs.y), Color(haze, fog * 0.35))
+	for row in rows:
+		var t := float(row) / maxf(float(rows - 1), 1.0)  # 0 = far, 1 = near
+		var f := lerpf(far_parallax, meadow_parallax, t)
+		var col := trunk_far.lerp(trunk_near, t)
+		var floor_y := hy + lerpf(-20.0, 110.0, t) * zl - (_cam.y - reference_y) * f * _zoom * 0.5
+		if floor_y < _vs.y:
+			n.draw_rect(Rect2(-10.0, floor_y, _vs.x + 20.0, _vs.y - floor_y + 10.0), col)
+		_trunk_row(n, row, f, col, floor_y, lerpf(0.5, 1.7, t) * zl)
+		if row < rows - 1:
+			var fa := fog * lerpf(0.5, 0.28, t)
+			n.draw_rect(Rect2(0, 0, _vs.x, _vs.y), Color(haze, fa * 0.45))
+			_haze_band(n, floor_y, 110.0 * zl, fa)
+	_paint_shafts(n, zl)
+	_paint_canopy(n, zl)
+	if ground_fog > 0.0:
+		var y0 := hy + 60.0 * zl
+		_haze_band(n, y0, 120.0 * zl, ground_fog * 0.55)
+		_haze_band(n, y0 + 90.0 * zl, 90.0 * zl, ground_fog * 0.35)
+
+
+func _trunk_row(n: Node2D, row: int, f: float, col: Color, floor_y: float, s: float) -> void:
+	var zl := lerpf(1.0, _zoom, 0.6)
+	var period := 2400.0
+	var count := int(trunk_density * period / 1000.0 * lerpf(1.4, 0.7, float(row) / maxf(float(trunk_rows - 1), 1.0)))
+	var r := RandomNumberGenerator.new()
+	r.seed = 400 + row * 37
+	for i in count:
+		var u := r.randf_range(0.0, period)
+		var w := r.randf_range(8.0, 17.0) * s
+		var lean := r.randf_range(-0.035, 0.035)
+		var has_crown := r.randf() < 0.4  # a shorter tree whose crown is in view
+		var crown_t := r.randf()
+		var tint := col.lerp(col.lightened(0.12), r.randf() * 0.6)
+		var stub_seed := r.randi()
+		var sx := fposmod((u - _cam.x * f) * zl + _vs.x * 0.5, period * zl) - 120.0
+		while sx <= _vs.x + 120.0:
+			if sx >= -120.0:
+				var base := floor_y + 6.0 * s
+				var top := -30.0
+				if has_crown:
+					top = lerpf(_vs.y * 0.04, maxf(floor_y - 200.0 * s, _vs.y * 0.05), crown_t)
+				_trunk(n, sx, base, top, w, lean, tint, stub_seed, has_crown, s)
+			sx += period * zl
+
+
+func _trunk(n: Node2D, x: float, base: float, top: float, w: float, lean: float, col: Color,
+		seed_: int, crown: bool, s: float) -> void:
+	var h := base - top
+	var tx := x + lean * h
+	FastDraw.quad(n, PackedVector2Array([Vector2(x - w * 0.55, base), Vector2(x + w * 0.55, base),
+		Vector2(tx + w * 0.38, top), Vector2(tx - w * 0.38, top)]), PackedColorArray([col]))
+	# root flare
+	FastDraw.tri(n, Vector2(x - w * 1.3, base), Vector2(x - w * 0.4, base), Vector2(x - w * 0.45, base - w * 1.4), col)
+	FastDraw.tri(n, Vector2(x + w * 1.3, base), Vector2(x + w * 0.4, base), Vector2(x + w * 0.45, base - w * 1.4), col)
+	var r := RandomNumberGenerator.new()
+	r.seed = seed_
+	# a few bare branches
+	for b in r.randi_range(0, 2):
+		var k := r.randf_range(0.2, 0.6)
+		var py := lerpf(top, base, k)
+		var px := lerpf(tx, x, k)
+		var dir := -1.0 if r.randf() < 0.5 else 1.0
+		var ln := r.randf_range(16.0, 40.0) * s
+		var bw := maxf(w * 0.14, 1.0)
+		var tip := Vector2(px + dir * ln, py - ln * r.randf_range(0.5, 0.9))
+		FastDraw.tri(n, Vector2(px, py - bw), Vector2(px, py + bw), tip, col)
+	if crown:
+		var cc := col.darkened(0.1)
+		for j in 9:
+			FastDraw.circle(n, Vector2(tx + r.randf_range(-34.0, 34.0) * s, top + r.randf_range(-26.0, 18.0) * s),
+				r.randf_range(14.0, 30.0) * s, cc)
+
+
+func _paint_canopy(n: Node2D, zl: float) -> void:
+	if canopy <= 0.0:
+		return
+	var depth := _vs.y * 0.3 * canopy
+	var c0 := Color(canopy_color, 0.0)
+	var c1 := Color(canopy_color, 0.85 * canopy)
+	FastDraw.quad(n, PackedVector2Array([Vector2(0, -2), Vector2(_vs.x, -2), Vector2(_vs.x, depth), Vector2(0, depth)]),
+		PackedColorArray([c1, c1, c0, c0]))
+	for layer in 2:
+		var col := canopy_color.lerp(haze, 0.38 * canopy) if layer == 0 else canopy_color
+		var f := 0.3 if layer == 0 else 0.55
+		var drop := (0.11 if layer == 0 else 0.06) * _vs.y * canopy
+		var period := 1700.0
+		var r := RandomNumberGenerator.new()
+		r.seed = 61 + layer * 9
+		n.draw_rect(Rect2(0, -2, _vs.x, drop * 0.45 + 2.0), col)
+		for c in 13:
+			var cu := r.randf_range(0.0, period)
+			var cy := r.randf_range(0.2, 1.0) * drop
+			var blobs: Array[Vector3] = []
+			for j in 11:
+				blobs.append(Vector3(r.randf_range(-110.0, 110.0), r.randf_range(-45.0, 22.0), r.randf_range(16.0, 42.0)))
+			var sx := fposmod((cu - _cam.x * f) * zl, period * zl) - 160.0
+			while sx <= _vs.x + 160.0:
+				if sx >= -160.0:
+					for bl in blobs:
+						FastDraw.circle(n, Vector2(sx + bl.x * zl, cy + bl.y * zl), bl.z * zl, col)
+				sx += period * zl
+
+
+func _paint_shafts(n: Node2D, zl: float) -> void:
+	if light_shafts <= 0 or shaft_opacity <= 0.0:
+		return
+	var r := RandomNumberGenerator.new()
+	r.seed = 52
+	var period := 2600.0
+	var f := 0.22
+	for i in light_shafts:
+		var u := (float(i) + r.randf_range(0.1, 0.9)) * period / float(light_shafts)
+		var w := r.randf_range(50.0, 130.0) * zl
+		var slant := r.randf_range(0.18, 0.34) * _vs.y
+		var a := shaft_opacity * r.randf_range(0.6, 1.0) * (0.8 + 0.2 * sin(_t * 0.35 + float(i) * 1.9))
+		var sx := fposmod((u - _cam.x * f) * zl, period * zl) - 400.0
+		while sx <= _vs.x + 200.0:
+			if sx >= -400.0:
+				var top := Color(shaft_color, a)
+				var bot := Color(shaft_color, 0.0)
+				FastDraw.quad(n, PackedVector2Array([Vector2(sx, -10), Vector2(sx + w, -10),
+					Vector2(sx + w * 1.8 + slant, _vs.y * 0.95), Vector2(sx + slant, _vs.y * 0.95)]),
+					PackedColorArray([top, top, bot, bot]))
+				var core := Color(shaft_color, a * 0.8)
+				FastDraw.quad(n, PackedVector2Array([Vector2(sx + w * 0.35, -10), Vector2(sx + w * 0.6, -10),
+					Vector2(sx + w * 1.1 + slant, _vs.y * 0.7), Vector2(sx + w * 0.7 + slant, _vs.y * 0.7)]),
+					PackedColorArray([core, core, bot, bot]))
+			sx += period * zl
+
+
+## Low fog drifting in front of the level (drawn with the dust, in world space).
+func _paint_front_fog(n: Node2D) -> void:
+	if front_fog <= 0.0:
+		return
+	var sz := _vs / maxf(_zoom, 0.25)
+	var tl := _cam - sz * 0.5
+	var c0 := Color(haze, 0.0)
+	var c1 := Color(haze, front_fog * 0.3)
+	FastDraw.quad(n, PackedVector2Array([Vector2(tl.x, tl.y + sz.y * 0.68), Vector2(tl.x + sz.x, tl.y + sz.y * 0.68),
+		Vector2(tl.x + sz.x, tl.y + sz.y), Vector2(tl.x, tl.y + sz.y)]), PackedColorArray([c0, c0, c1, c1]))
+	var r := RandomNumberGenerator.new()
+	r.seed = 71
+	var period := sz.x + 1200.0
+	for i in 9:
+		var u := r.randf_range(0.0, period)
+		var spd := r.randf_range(6.0, 16.0)
+		var y := tl.y + sz.y * r.randf_range(0.78, 1.0)
+		var rad := r.randf_range(110.0, 220.0)
+		var x := tl.x + fposmod(u + _t * spd - _cam.x * 0.15, period) - 600.0
+		n.draw_set_transform(Vector2(x, y), 0.0, Vector2(3.2, 0.45))
+		FastDraw.circle(n, Vector2.ZERO, rad, Color(haze, front_fog * 0.06))
+		FastDraw.circle(n, Vector2.ZERO, rad * 0.6, Color(haze, front_fog * 0.05))
+	n.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

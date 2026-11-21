@@ -35,6 +35,10 @@ enum AIMode { MIRROR, FOLLOW }
 ## Shortest it can ratchet down to in this phase.
 @export_range(8.0, 800.0, 5.0) var leash_floor := 440.0
 
+## Can the player cut the cord (hold Q) in this phase? Off = holding Q does nothing.
+## Only phase III has it on. (TetherRig.sever_tether() from a DialogueCall works in any phase.)
+@export var can_sever := false
+
 @export_group("Partner AI")
 ## MIRROR: walks the way you walk. FOLLOW: only closes distance to you.
 @export var ai_mode := AIMode.MIRROR
@@ -76,10 +80,7 @@ enum AIMode { MIRROR, FOLLOW }
 @export_range(0.0, 2.0, 0.01) var swap_delay := 0.0
 ## After swapping, your input still drives the OLD body this long.
 @export_range(0.0, 2.0, 0.01) var control_bleed := 0.0
-
 @export_group("Look & feel")
-## How much each body takes on the other's colour / silhouette (0..1).
-@export_range(0.0, 1.0, 0.05) var bleed := 0.0
 ## Strength of the separation filter (cold/vignette) and the warm closeness pulse.
 @export_range(0.0, 1.0, 0.05) var anxiety := 0.25
 ## How much being apart degrades YOUR movement (lighter gravity, mushy acceleration).

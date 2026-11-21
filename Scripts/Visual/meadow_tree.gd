@@ -36,6 +36,11 @@ extends Node2D
 	set(v):
 		highlight_color = v
 		queue_redraw()
+## Off = a dead, bare tree: just the branches, with thin twigs at the tips.
+@export var leaves := true:
+	set(v):
+		leaves = v
+		queue_redraw()
 @export var blossoms := true:
 	set(v):
 		blossoms = v
@@ -57,6 +62,9 @@ func _draw() -> void:
 	r.seed = tree_seed
 	var tips: Array[Vector2] = []
 	_branch(r, Vector2(0, 4), -PI / 2 + 0.04, trunk_length, trunk_width, 0, tips)
+	if not leaves:
+		_twigs(tips)
+		return
 	for pass_ in 2:
 		var rr := RandomNumberGenerator.new()
 		rr.seed = tree_seed * 11 + 40
@@ -90,3 +98,17 @@ func _branch(r: RandomNumberGenerator, p: Vector2, ang: float, length: float, w:
 	for i in kids:
 		var spread := r.randf_range(0.25, 0.6) * (1.0 if i % 2 == 0 else -1.0)
 		_branch(r, q, ang + spread * 0.85, length * r.randf_range(0.6, 0.74), w * 0.68, depth + 1, tips)
+
+
+func _twigs(tips: Array[Vector2]) -> void:
+	var r := RandomNumberGenerator.new()
+	r.seed = tree_seed * 7 + 3
+	for t in tips:
+		for j in 3:
+			var a := -PI / 2 + r.randf_range(-1.1, 1.1)
+			var ln := r.randf_range(8.0, 20.0)
+			var q := t + Vector2(cos(a), sin(a)) * ln
+			draw_line(t, q, leaf_color, r.randf_range(1.0, 1.8), true)
+			if r.randf() < 0.5:
+				var a2 := a + r.randf_range(-0.7, 0.7)
+				draw_line(q, q + Vector2(cos(a2), sin(a2)) * ln * 0.5, leaf_color, 1.0, true)

@@ -64,8 +64,24 @@ var eye_glow := Color(1.0, 0.97, 0.9)
 ## Shape change while hauling: x widens / y squats. (1.08, 0.92) = braced, dug in.
 @export var reel_squash := Vector2(1.08, 0.92)
 
+@export_group("Sound")
+## One is picked at random for each step (drop several variations in for a natural sound).
+@export var footstep_sounds: Array[AudioStream] = []
+@export_range(-40.0, 12.0, 0.5) var footstep_volume_db := -16.0
+## Pixels walked per footstep (smaller = faster steps).
+@export_range(10.0, 200.0, 1.0) var step_distance := 48.0
+@export var jump_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var jump_volume_db := -10.0
+@export var land_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var land_volume_db := -10.0
+## Landings slower than this (px/s, falling) are silent - stops tiny hops from thudding.
+@export_range(0.0, 900.0, 10.0) var land_min_speed := 260.0
+## Extra volume (dB) when this body is the partner, not the one you control. Negative = quieter.
+@export_range(-40.0, 0.0, 0.5) var partner_volume_offset_db := -5.0
+
 var gravity := 0.0
 var jump_velocity := 0.0
+var _step_dist := 0.0
 var tether: Tether
 var partner: Character
 
@@ -79,7 +95,6 @@ var controlled := false
 var speed_mult := 1.0
 var jump_mult := 1.0
 var floaty := 0.0          ## 0..1 separation anxiety: lighter gravity, mushier acceleration
-var bleed := 0.0           ## 0..1 how much this body has taken on the partner's look
 var marker_alpha := 0.0    ## "this is you" marker
 var left_behind := false
 var calling := false       ## shows "..." (waiting / calling to you)
@@ -99,7 +114,6 @@ var _pre_move_vy := 0.0
 var _squash := Vector2.ONE
 var _floor_grace := 0.0
 var _stagger := 0.0
-var _glitch := 0.0
 var _time := 0.0
 var reel_effort := 0.0     ## 0..1, set by the tether while this body is reeling on the ground
 var _effort := 0.0         ## smoothed reel_effort
@@ -130,6 +144,14 @@ func _ready() -> void:
 	jump_velocity = -2.0 * jump_height / time_to_apex
 
 
+func _sfx(s: AudioStream, db: float) -> void:
+	if s == null:
+		return
+	var sm := get_node_or_null("/root/SoundManager")
+	if sm:
+		sm.play_sound(s, db + (0.0 if controlled else partner_volume_offset_db))
+
+
 func half_w() -> float:
 	return size.x * 0.5
 
@@ -157,10 +179,6 @@ func set_intent(move: float, jump_pressed: bool, jump_held: bool) -> void:
 func stagger(t: float) -> void:
 	_stagger = maxf(_stagger, t)
 	_squash = Vector2(1.25, 0.8)
-
-
-func glitch(t: float) -> void:
-	_glitch = maxf(_glitch, t)
 
 
 func is_grounded() -> bool:
@@ -216,6 +234,7 @@ func pre_step(dt: float) -> void:
 		_jumping = true
 		just_jumped = true
 		_squash = Vector2(0.75, 1.3)
+		_sfx(jump_sound, jump_volume_db)
 	elif _buffer > 0.0 and swinging and tether and tether.anchor and tether.controller == self:
 		tether.release_anchor()
 		velocity.y = minf(velocity.y, jump_velocity * swing_release_pop)
@@ -240,10 +259,18 @@ func post_step(dt: float) -> void:
 	if is_on_floor() and not _was_on_floor and _pre_move_vy > 200.0:
 		var k := clampf(_pre_move_vy / 900.0, 0.15, 0.4)
 		_squash = Vector2(1.0 + k, 1.0 - k)
+	if is_on_floor() and not _was_on_floor:
+		if _pre_move_vy >= land_min_speed:
+			_sfx(land_sound, land_volume_db)
+		_step_dist = step_distance * 0.5  # first step comes a little after landing
+	if is_on_floor() and absf(velocity.x) > 30.0 and not footstep_sounds.is_empty():
+		_step_dist += absf(velocity.x) * dt
+		if _step_dist >= step_distance:
+			_step_dist = 0.0
+			_sfx(footstep_sounds[randi() % footstep_sounds.size()], footstep_volume_db)
 	_effort = move_toward(_effort, reel_effort, dt * 6.0)
 	var rest := Vector2.ONE.lerp(reel_squash, _effort)  # dig in while hauling
 	_squash = _squash.lerp(rest, 1.0 - exp(-14.0 * dt))
-	_glitch = maxf(0.0, _glitch - dt)
 	if _sprite:
 		_update_sprite()
 	queue_redraw()
@@ -253,8 +280,6 @@ func post_step(dt: float) -> void:
 
 func _draw() -> void:
 	var col := color
-	if partner:
-		col = color.lerp(partner.color, bleed * 0.5)
 	if left_behind:
 		col = col.lerp(Color(0.42, 0.44, 0.5), 0.75)
 	var rim := col
@@ -265,22 +290,11 @@ func _draw() -> void:
 		_draw_overlays()  # the sprite is the body; only draw the "you" marker / "..." on top
 		return
 
-	# Identity glitch after a swap (late phases): flicker into the partner's body.
 	var draw_shape := shape
 	var draw_size := size
-	if _glitch > 0.0 and partner and int(_time * 30.0) % 2 == 0:
-		draw_shape = partner.shape
-		draw_size = partner.size
-		col = partner.color.lerp(color, bleed * 0.5)
-		off.x += randf_range(-3.0, 3.0)
-
 	_draw_body(draw_shape, draw_size, col, off)
 	if silhouette:
 		_draw_rim(draw_shape, draw_size, rim, off)
-
-	# Silhouette bleed: the partner's outline grows inside you.
-	if partner and bleed > 0.05 and not left_behind:
-		_draw_outline(partner.shape, partner.size, Color(partner.color, bleed * 0.55), off)
 
 	# Eyes
 	var dark := Color(0.12, 0.1, 0.12)
@@ -346,10 +360,7 @@ func _anim_name() -> String:
 
 
 func _update_sprite() -> void:
-	# Identity glitch after a swap: flicker into the partner's art if it has some.
 	var frames := sprite_frames
-	if _glitch > 0.0 and partner and partner.sprite_frames and int(_time * 30.0) % 2 == 0:
-		frames = partner.sprite_frames
 	if _sprite.sprite_frames != frames:
 		_sprite.sprite_frames = frames
 	var want := _anim_name()
@@ -362,8 +373,6 @@ func _update_sprite() -> void:
 	# squash around the feet, plus the same tremble the placeholder uses
 	_sprite.position = sprite_offset + Vector2(0.0, half_h() * (1.0 - _squash.y)) + _shake_offset()
 	var tint := Color.WHITE
-	if partner:
-		tint = tint.lerp(partner.color, bleed * 0.35)
 	if left_behind:
 		tint = tint.lerp(Color(0.5, 0.52, 0.58), 0.7)
 	_sprite.modulate = tint
@@ -399,10 +408,3 @@ func _draw_rim(s: Shape, sz: Vector2, col: Color, off: Vector2) -> void:
 		draw_line(tl + Vector2(1, 0.75), tl + Vector2(d.x - 0.5, 0.75), col, 1.5)
 		draw_line(tl + Vector2(d.x - 0.75, 1), tl + Vector2(d.x - 0.75, d.y - 1), col, 1.5)
 
-
-func _draw_outline(s: Shape, sz: Vector2, col: Color, off: Vector2) -> void:
-	if s == Shape.CIRCLE:
-		draw_arc(off, sz.x * 0.5 * 0.85, 0.0, TAU, 28, col, 2.0, true)
-	else:
-		var d := sz * 0.85
-		draw_rect(Rect2(off - d * 0.5, d), col, false, 2.0)

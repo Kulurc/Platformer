@@ -73,7 +73,6 @@ What each setting means in plain words, and its value in each phase.
 
 | Setting | What it means for the player | I | II | III |
 |---|---|---|---|---|
-| `bleed` | How much each body takes on the other's colour/outline (and glitches into it on a swap) | 0 | 0.35 | **0.8** |
 | `anxiety` | Strength of the cold filter + vignette when apart (and the warm pulse when close) | 0.25 | 0.8 | **1.0** |
 | `floaty` | How much being apart degrades *your* movement (see below) | 0 | 0.5 | **1.0** |
 
@@ -99,7 +98,7 @@ Use these to size gaps, steps and ledges. They are the same in every phase.
 | Cord snaps | **4.2 W for 0.35 s** | Pulling too hard for too long = "The tether gave way." (respawn) |
 | Cord stretch | +40 px beyond its length | Hard stretch limit before it holds firm |
 | Checkpoint | Partner within **220 px**, or cord severed | Checkpoints only save if you arrive together |
-| After severing (hold Q 1 s) | **+20% run speed, +20% jump speed** (≈ 44% higher jumps: ~161 px Wisp / ~187 px Ember; reach ~205–225 px) | Free is faster... and lonely |
+| After severing (hold Q 1 s, phase III only; no more swapping) | **+20% run speed, +20% jump speed** (≈ 44% higher jumps: ~161 px Wisp / ~187 px Ember; reach ~205–225 px) | Free is faster... and lonely |
 
 **Rule of thumb for gaps:** a gap is safe for the **partner** only if it's under ~140 px (90% of the
 shorter reach). Anything wider has to be solved with the cord: reel them across, swing from a ring, or
@@ -191,8 +190,7 @@ try to leave, and pulling away hurts. The level should make the player ask: *sho
   bursts.
 - Pull away harder than 1.3 W and you get **yanked back** (300 px/s): you lose control for 0.22 s, the
   camera shakes, and the partner panics for 1.2 s, running and jumping at you blindly.
-- Swapping is delayed (0.3 s) and blurred (0.3 s of input bleed). The silhouettes blend together, so for a moment
-  you can't tell which one is you.
+- Swapping is delayed (0.3 s) and blurred (0.3 s of input bleed).
 - Apart = fully cold screen and very floaty, unreliable movement.
 
 **Build for it**
@@ -202,7 +200,7 @@ try to leave, and pulling away hurts. The level should make the player ask: *sho
   together with low swings.
 - **Slow, deliberate pacing.** The hold-on and tug make movement stutter, so don't time anything tightly.
   No chases, no crumbling floors under pressure.
-- **Make severing tempting.** Put spots where cutting the cord (hold Q for 1 s) is *clearly* easier:
+- **Make severing tempting.** Put spots where cutting the cord (hold Q for 1 s - only possible in phase III) is *clearly* easier:
   a gap only a free body can clear (when free, reach rises to about 205–225 px and jump height by about 44%),
   or a climb that's miserable while tethered.
 - **The final stretch** (from the notebook): a long stairway. Two ways through:

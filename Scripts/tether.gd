@@ -36,6 +36,10 @@ signal tugged(body: Character)
 @export var hard_stretch := 40.0
 
 @export_group("Strain")
+## Off = the cord never breaks on its own, only when the player holds Sever (Q).
+## On = it also snaps when pulled past `break_force` for `break_time`, or when it gets
+## stretched/wedged far past its length.
+@export var can_break := false
 @export var weight_unit := 1600.0
 @export var break_force := 4.2
 @export var break_time := 0.35
@@ -115,6 +119,7 @@ var reveal_alpha := 1.0:
 var _rope_free := false
 var _free_seg := 8.0
 var input_enabled := true   ## off during cutscenes / black screens (set by the TetherRig)
+var sever_allowed := false  ## holding Sever only works in phases with `can_sever` on (set by apply_phase)
 var _reel_moving := false   ## reeling AND the cord actually got shorter this frame
 var _slack_moving := false
 var _change := 0.0          ## smoothed: +1 reeling, -1 slacking, 0 idle
@@ -139,25 +144,12 @@ func setup(body_a: Character, body_b: Character, ctrl: Character) -> void:
 	reset(false)
 
 
+## Looping player made by the SoundManager (Sfx bus; WAVs without a loop point get looped).
 func _make_loop_player(s: AudioStream) -> AudioStreamPlayer:
-	var p := AudioStreamPlayer.new()
-	p.bus = &"Sfx"
-	p.volume_db = -60.0
-	p.stream = _looped(s)
-	add_child(p)
-	return p
-
-
-## WAVs imported without a loop get looped here; for OGG/MP3 tick "Loop" in the Import dock.
-func _looped(s: AudioStream) -> AudioStream:
-	var w := s as AudioStreamWAV
-	if w and w.loop_mode == AudioStreamWAV.LOOP_DISABLED:
-		w = w.duplicate() as AudioStreamWAV
-		w.loop_mode = AudioStreamWAV.LOOP_FORWARD
-		w.loop_begin = 0
-		w.loop_end = int(w.get_length() * w.mix_rate)
-		return w
-	return s
+	var sm := get_node_or_null("/root/SoundManager")
+	if sm == null or s == null:
+		return null
+	return sm.make_loop(s, self, -60.0)
 
 
 ## Reeler effort (character tremble), cord tint/flow, and the reel/slack loops.
@@ -206,6 +198,7 @@ func apply_phase(p: PhaseProfile) -> void:
 	tug_impulse = p.tug_impulse
 	tug_stagger = p.tug_stagger
 	tug_cooldown = p.tug_cooldown
+	sever_allowed = p.can_sever
 	apart_time = 0.0
 
 
@@ -330,7 +323,7 @@ func post_step(dt: float) -> void:
 			s = _path_length(get_path_points())
 		if s - length > hard_stretch * 2.5:
 			_wedged_timer += dt
-			if _wedged_timer > 0.4:
+			if can_break and _wedged_timer > 0.4:
 				_snap(&"strain")
 		else:
 			_wedged_timer = 0.0
@@ -392,7 +385,7 @@ func _update_strain(dt: float) -> void:
 		_strain_timer += dt
 	else:
 		_strain_timer = maxf(0.0, _strain_timer - dt * 2.0)
-	if _strain_timer >= break_time:
+	if can_break and _strain_timer >= break_time:
 		_snap(&"strain")
 
 
@@ -435,7 +428,7 @@ func _handle_verbs(dt: float) -> void:
 		# Both on solid ground: a reeled-in cord eases back to a comfortable length.
 		length = minf(minf(rest_length, leash_cap), length + relax_speed * dt)
 
-	if input_enabled and Input.is_action_pressed("sever"):
+	if input_enabled and sever_allowed and Input.is_action_pressed("sever"):
 		sever_hold += dt
 		if sever_hold >= sever_hold_time:
 			_snap(&"sever")

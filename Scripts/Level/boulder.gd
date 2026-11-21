@@ -34,6 +34,12 @@ extends Block
 	set(v):
 		moss = v
 		queue_redraw()
+## Grass tufts along the bottom edge. Untick for a boulder that isn't sitting on the ground
+## (e.g. stacked on another boulder), or the grass floats.
+@export var base_grass := true:
+	set(v):
+		base_grass = v
+		queue_redraw()
 ## How many chunks it breaks into (bigger boulders use up to this many).
 @export_range(4, 80) var chunks := 26
 ## Optional sound when it breaks (the KeyItem's impact sound also plays).
@@ -125,6 +131,8 @@ func _draw() -> void:
 				var len_ := r.randf_range(10.0, 26.0)
 				FastDraw.tri(self, p + Vector2(-3, 2), p + Vector2(3, 2), p + Vector2(r.randf_range(-3, 3), len_), Color(mc.darkened(0.35), 0.8))
 	# grass growing up in front of the base, so it sits IN the ground rather than on it
+	if not base_grass:
+		return
 	var gc := Block.meadow_top.darkened(0.15)
 	var x := size.x * 0.1
 	while x < size.x * 0.9:

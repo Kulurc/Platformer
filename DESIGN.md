@@ -42,7 +42,7 @@ Phases only escalate, and the cord's memory survives respawns.
 | Cord ceiling | 440 | 320, then **ratchets down to 150** while you're apart > 1.2 s | 120 |
 | AI | *mirror*: walks your way, competent | *anxious*: predicts you, stays closer, **copies your jumps** (sometimes into pits) | *clinging*: closest; **holds on 0.45 s** when you leave; panics after a tug |
 | Pulling away | drag | drag + cord shortens | **tug**: >1.3 W away = yanked back + 0.22 s stagger, partner panics |
-| Swap | clean | your input drives the old body for 0.12 s | new body **hesitates 0.3 s** while the **old one still obeys you 0.3 s**; marker vanishes, bodies flicker into each other |
+| Swap | clean | your input drives the old body for 0.12 s | new body **hesitates 0.3 s** while the **old one still obeys you 0.3 s**; marker vanishes |
 | Look-alike | 0 | 35% colour + outline | 80% |
 | Separation feel | faint | cold, grey, vignette; **your movement goes floaty** | full |
 | Closeness feel | warm, slow pulse | same | same |
@@ -85,7 +85,7 @@ Gentle precision, with the friction coming from the relationship, not from the j
 2. **Muscle memory:** the AI copying your routes and timing isn't implemented (record your inputs and replay them in phase III?).
 3. **Can you re-tether after severing?** Currently no. The concept suggests relief *and* guilt on re-tethering.
 4. **Phase III tug strength:** right now it's annoying-by-design. Playtest whether it reads as "toxic" or just "bad controls" (the debug readout shows when it fires).
-5. **Bleed visuals** are colour + outline + swap flicker. A stronger option: morph the shapes (rect corners rounding, circle squaring).
+5. **No look-alike blending:** the two bodies always keep their own colour and outline (removed, it didn't fit the theme).
 
 ## Dialogue triggers (`Scripts/Dialogue/`)
 

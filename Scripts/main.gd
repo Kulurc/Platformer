@@ -25,6 +25,54 @@ extends Node2D
 @export var sever_speed_mult := 1.2
 @export var sever_jump_mult := 1.2
 
+@export_group("Messages")
+## Shown when the player cuts the cord.
+@export var sever_message := "It's over."
+## When anyone falls to their death, one of these is picked at random (never the same twice
+## in a row). Empty list = no message.
+@export var fall_messages: Array[String] = [
+	"It'll be different this time.",
+	"We'll try again.",
+	"Give us another chance.",
+	"Don't give up on us.",
+	"Don't let us go.",
+]
+
+@export_group("Sever")
+## Plays the instant the cord is cut (e.g. a sharp "TACK"). Fixed pitch, never varied.
+@export var sever_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var sever_volume_db := 0.0
+## Run in order the moment the cord is cut - same step types as a DialogueTrigger.
+## E.g. a DialogueMusic (ambience, empty stream, fade 0) to cut the ambience dead,
+## a DialogueWait, then a DialogueMusic to bring something new in. Or a DialogueCall
+## to any node/method. (The rig also emits the `severed` signal at the same moment.)
+@export var on_sever: Array[DialogueStep] = []
+
+@export_group("Audio")
+## Music / ambience that start when this level loads. Leave empty to keep whatever is
+## already playing (e.g. carried over from the previous level) - or to start it later
+## with a DialogueMusic step in a DialogueTrigger.
+@export var level_music: AudioStream
+@export var level_ambience: AudioStream
+@export_range(0.0, 10.0, 0.1) var level_audio_fade := 2.0
+@export_range(-40.0, 12.0, 0.5) var level_music_volume_db := 0.0
+@export_range(-40.0, 12.0, 0.5) var level_ambience_volume_db := 0.0
+## Tab: switching bodies.
+@export var swap_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var swap_volume_db := -8.0
+## Falling into a pit / off the level (plays as the screen fades).
+@export var fall_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var fall_volume_db := -6.0
+## Back at the checkpoint after a death or a restart.
+@export var respawn_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var respawn_volume_db := -8.0
+## A checkpoint is reached.
+@export var checkpoint_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var checkpoint_volume_db := -8.0
+## A new phase starts (plays with its title card).
+@export var phase_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var phase_volume_db := -6.0
+
 @export_group("Intro")
 ## Start this level on a black screen (speech bubbles still show). Reveal it with a
 ## DialogueFade step (FROM_BLACK) in an intro DialogueTrigger. Player input is ignored
@@ -66,6 +114,9 @@ extends Node2D
 ## "FPS: 60" counter at the top left. F1 toggles it in game.
 @export var show_fps := true
 
+## Emitted the moment the player cuts the cord (connect it in the Node dock if you like).
+signal severed
+
 @onready var wisp: Character = $Wisp
 @onready var ember: Character = $Ember
 @onready var tether: Tether = $Tether
@@ -89,11 +140,11 @@ var _zones: Array[Zone] = []
 var _swap_lock := 0.0
 var _control_bleed := 0.0
 var _shake := 0.0
-var _bleed := 0.0
 var _anxiety := 0.0
 var _pulse_time := 0.0
 var _input_lock := 0.0
 var _fall_limit_y := 0.0
+var _last_fall_msg := -1
 
 
 func _ready() -> void:
@@ -138,6 +189,12 @@ func _ready() -> void:
 	set_phase(1)
 	_update_camera(1.0, true)
 	camera.make_current()
+	var sm := _sm()
+	if sm:
+		if level_music:
+			sm.play_music_fade(level_music, level_audio_fade, level_music_volume_db)
+		if level_ambience:
+			sm.play_ambience_fade(level_ambience, level_audio_fade, level_ambience_volume_db)
 
 
 func _physics_process(dt: float) -> void:
@@ -181,11 +238,10 @@ func _physics_process(dt: float) -> void:
 		c.speed_mult = sever_speed_mult if free else 1.0
 		c.jump_mult = sever_jump_mult if free else 1.0
 		c.floaty = separation * float(profile.floaty) if c == controlled and not free else 0.0
-		c.bleed = _bleed
 		c.left_behind = free and c != controlled
 		var marker_target := 1.0 if c == controlled else 0.0
-		if _swap_lock > 0.0 or (_bleed > 0.6 and _control_bleed > 0.0):
-			marker_target = 0.0  # for a moment you can't tell which one is you
+		if _swap_lock > 0.0:
+			marker_target = 0.0  # hidden while the new body hesitates after a swap
 		c.marker_alpha = move_toward(c.marker_alpha, marker_target, dt * 6.0)
 
 	# --- simulate
@@ -200,9 +256,9 @@ func _physics_process(dt: float) -> void:
 
 	_check_zones(dt)
 	if controlled.global_position.y > _fall_limit_y:
-		_die("")
+		_fall()
 	elif partner.global_position.y > _fall_limit_y and not tether.severed:
-		_die("You lost them.")
+		_fall()
 	_update_camera(dt)
 	hud.update_debug(tether, controlled, phase, separation, debug_tools)
 
@@ -210,6 +266,8 @@ func _physics_process(dt: float) -> void:
 # ---------------------------------------------------------------- swap & phases
 
 func swap() -> void:
+	if tether.severed:
+		return  # after the cut you're stuck with whoever you chose
 	var old := controlled
 	controlled = partner
 	partner = old
@@ -219,9 +277,7 @@ func swap() -> void:
 	ai.reset()
 	_swap_lock = profile.swap_delay
 	_control_bleed = profile.control_bleed
-	if _bleed > 0.3:
-		controlled.glitch(0.25 * _bleed)
-		partner.glitch(0.25 * _bleed)
+	_sfx(swap_sound, swap_volume_db)
 
 
 func set_phase(p: int) -> void:
@@ -238,10 +294,11 @@ func set_phase(p: int) -> void:
 	ai.configure(profile)
 	tether.apply_phase(profile)
 	var tw := create_tween()
-	tw.tween_property(self, "_bleed", profile.bleed, 2.5)
-	tw.parallel().tween_property(self, "_anxiety", profile.anxiety, 2.5)
+	tw.tween_property(self, "_anxiety", profile.anxiety, 2.5)
 	if profile.show_title:
 		hud.show_title(profile.title, profile.subtitle, profile.title_font, profile.subtitle_font)
+	if p > 1:
+		_sfx(phase_sound, phase_volume_db)
 
 
 # ---------------------------------------------------------------- helpers for DialogueCall
@@ -279,14 +336,7 @@ func reveal_tether(rope_time: float = -1.0, hold: float = -1.0) -> void:
 	if rope_time < 0.0: rope_time = tether_reveal_time
 	if hold < 0.0: hold = tether_reveal_hold
 	tether_in_front()
-	if tether_reveal_sound:
-		var sfx := AudioStreamPlayer.new()
-		sfx.stream = tether_reveal_sound
-		sfx.volume_db = tether_reveal_volume_db
-		sfx.bus = &"Sfx"
-		sfx.finished.connect(sfx.queue_free)
-		add_child(sfx)
-		sfx.play()
+	_sfx(tether_reveal_sound, tether_reveal_volume_db)
 	if rope_time > 0.0:
 		tether.reveal_alpha = 0.0
 		var tw := create_tween()
@@ -433,6 +483,7 @@ func _check_zones(dt: float) -> void:
 							other.activated = false
 					z.activated = true
 					_checkpoint = z.spawn_point()
+					_sfx(checkpoint_sound, checkpoint_volume_db)
 			Zone.Kind.STAY:
 				if tether.is_active() and z.overlaps_body(wisp) and z.overlaps_body(ember):
 					z.progress = minf(1.0, z.progress + dt / z.stay_time)
@@ -450,16 +501,53 @@ func _check_zones(dt: float) -> void:
 
 func _on_kill_zone(body: Node2D) -> void:
 	if body == controlled:
-		_die("")
+		_fall()
 	elif body == partner and not tether.severed:
-		_die("You lost them.")
+		_fall()
+
+
+## Someone fell to their death: a random line from fall_messages, then respawn.
+func _fall() -> void:
+	if _busy or _ended:
+		return
+	var msg := ""
+	if not fall_messages.is_empty():
+		var i := randi() % fall_messages.size()
+		if fall_messages.size() > 1 and i == _last_fall_msg:
+			i = (i + 1 + randi() % (fall_messages.size() - 1)) % fall_messages.size()
+		_last_fall_msg = i
+		msg = fall_messages[i]
+	_sfx(fall_sound, fall_volume_db)
+	_die(msg)
 
 
 func _on_tether_snapped(reason: StringName) -> void:
 	if reason == &"strain":
 		_die("The tether gave way.")
-	else:
-		hud.show_message("You let go.", 1.5)
+		return
+	var sm := _sm()
+	if sm and sever_sound:
+		sm.play_sound_exact(sever_sound, sever_volume_db)
+	hud.show_message(sever_message, 1.5)
+	severed.emit()
+	_run_on_sever()
+
+
+func _run_on_sever() -> void:
+	for st in on_sever:
+		if st:
+			await st.run(self)
+
+
+func _sm() -> Node:
+	return get_node_or_null("/root/SoundManager")
+
+
+## One-shot sound effect through the SoundManager (nothing happens if `s` is empty).
+func _sfx(s: AudioStream, db: float) -> void:
+	var sm := _sm()
+	if sm and s:
+		sm.play_sound(s, db)
 
 
 func _on_tugged(_body: Character) -> void:
@@ -473,6 +561,7 @@ func _die(msg: String) -> void:
 	_busy = true
 	hud.fade(msg, func():
 		_respawn()
+		_sfx(respawn_sound, respawn_volume_db)
 		_busy = false)
 
 

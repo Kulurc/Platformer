@@ -1,4 +1,4 @@
-[gd_scene load_steps=82 format=4 uid="uid://pma3rris7bfn"]
+[gd_scene load_steps=81 format=4 uid="uid://pma3rris7bfn"]
 
 [ext_resource type="PackedScene" path="res://Scenes/Prefabs/level_art.tscn" id="1_1nmw6"]
 [ext_resource type="Script" uid="uid://46n84pblytya" path="res://Scripts/Level/block.gd" id="3_ryn0j"]
@@ -100,7 +100,7 @@ method = &"tether_behind_characters"
 script = ExtResource("18_cdoae")
 target = NodePath("../../TetherRig")
 method = &"show_title"
-args = ["Conflict", "Year 3"]
+args = ["Conflict", "37 months together..."]
 metadata/_custom_type_script = "uid://dmn171fwmr3bv"
 
 [sub_resource type="Resource" id="Resource_q1ws5"]
@@ -380,13 +380,6 @@ message = "Oh yeah, of course."
 text_sound = SubResource("AudioStreamWAV_s6bta")
 appear_time = 1.0
 
-[sub_resource type="Resource" id="Resource_w3c8k"]
-script = ExtResource("14_naxnw")
-message = "[wave]The other way, silly!"
-text_speed = 15.0
-text_sound = ExtResource("15_0iww3")
-appear_time = 2.5
-
 [node name="Level2_Visual" type="Node2D"]
 
 [node name="LevelArt" parent="." instance=ExtResource("1_1nmw6")]
@@ -411,6 +404,18 @@ far_hills = Color(0.5411765, 0.5921569, 0.59607846, 1)
 mid_hills = Color(0.40392157, 0.47843137, 0.41960785, 1)
 meadow = Color(0.29803923, 0.39215687, 0.2901961, 1)
 reference_y = -600.0
+trunk_rows = null
+trunk_density = null
+trunk_far = null
+trunk_near = null
+fog = null
+ground_fog = null
+front_fog = null
+canopy = null
+canopy_color = null
+light_shafts = null
+shaft_color = null
+shaft_opacity = null
 flower_count = 150
 flower_opacity = 0.08
 flower_colors = Array[Color]([Color(0.8392157, 0.7607843, 0.41960785, 1), Color(0.8156863, 0.8117647, 0.76862746, 1), Color(0.7058824, 0.54509807, 0.5803922, 1)])
@@ -423,6 +428,8 @@ dust_color = Color(0.9019608, 0.9019608, 0.84705883, 1)
 foreground_trees = 2
 vignette = 0.36
 shadow_lift = Color(0, 0.01, 0.02, 1)
+desaturate = null
+desaturate_tint = null
 
 [node name="Level" type="Node2D" parent="."]
 
@@ -864,6 +871,7 @@ tree_seed = 11
 trunk_length = 100.0
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="EndTree" type="Node2D" parent="Decor"]
@@ -874,6 +882,7 @@ position = Vector2(17110, -1136)
 script = ExtResource("10_f55it")
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Tree_A" type="Node2D" parent="Decor"]
@@ -887,6 +896,7 @@ trunk_length = 90.0
 branch_levels = 4
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Tree_B" type="Node2D" parent="Decor"]
@@ -899,6 +909,7 @@ tree_seed = 7
 trunk_length = 120.0
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Tree_C" type="Node2D" parent="Decor"]
@@ -912,6 +923,7 @@ trunk_length = 80.0
 branch_levels = 4
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Tree_D" type="Node2D" parent="Decor"]
@@ -924,6 +936,7 @@ tree_seed = 9
 trunk_length = 130.0
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Tree_E" type="Node2D" parent="Decor"]
@@ -937,6 +950,7 @@ trunk_length = 95.0
 branch_levels = 4
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Tree_F" type="Node2D" parent="Decor"]
@@ -950,6 +964,7 @@ trunk_length = 85.0
 branch_levels = 4
 leaf_color = Color(0.10980392, 0.15294118, 0.105882354, 1)
 highlight_color = Color(0.28627452, 0.34901962, 0.23921569, 1)
+leaves = null
 blossoms = false
 
 [node name="Bounds" type="Node2D" parent="."]
@@ -958,7 +973,7 @@ blossoms = false
 position = Vector2(-240, -1400)
 
 [node name="Shape" type="CollisionShape2D" parent="Bounds/LeftBorder"]
-position = Vector2(20, 900)
+position = Vector2(-117, 900)
 shape = SubResource("RectangleShape2D_k83jr")
 
 [node name="Dialogue" type="Node2D" parent="."]
@@ -1059,14 +1074,6 @@ script = ExtResource("11_kjacg")
 steps = Array[ExtResource("12_6tqaa")]([SubResource("Resource_0way5"), SubResource("Resource_cw30w"), SubResource("Resource_ie22q"), SubResource("Resource_uxnm3"), SubResource("Resource_dgfc6"), SubResource("Resource_5fn7l")])
 size = Vector2(300, 160)
 
-[node name="LeftBorderLine" type="Area2D" parent="Dialogue"]
-position = Vector2(-200, -400)
-collision_layer = 0
-collision_mask = 2
-script = ExtResource("11_kjacg")
-steps = Array[ExtResource("12_6tqaa")]([SubResource("Resource_w3c8k")])
-size = Vector2(32, 400)
-
 [node name="TetherRig" parent="." instance=ExtResource("19_xxkjt")]
 start_black = true
 
@@ -1135,6 +1142,6 @@ position = Vector2(11720, -778)
 
 [node name="LevelExit" parent="." instance=ExtResource("35_5ewe6")]
 position = Vector2(17124, -1280)
-next_scene = "prototype"
+next_scene = "Level3_Visual"
 
 [editable path="TetherRig"]
