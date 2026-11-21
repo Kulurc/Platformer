@@ -18,12 +18,15 @@ config/icon="res://icon.svg"
 [autoload]
 
 SoundManager="*res://Scenes/Autoload/sound_manager.tscn"
+ScreenFade="*res://Scripts/Autoload/screen_fade.gd"
 
 [display]
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
+window/size/mode=2
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [editor_plugins]
 
@@ -33,7 +36,3 @@ enabled=PackedStringArray("res://addons/box_resize/plugin.cfg")
 
 2d_physics/layer_1="world"
 2d_physics/layer_2="characters"
-
-[rendering]
-
-environment/defaults/default_clear_color=Color(0.4651422, 0.7150746, 0.79014534, 1)

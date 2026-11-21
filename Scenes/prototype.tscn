@@ -1,18 +1,25 @@
-[gd_scene load_steps=21 format=3 uid="uid://cebx2otjp032r"]
+[gd_scene load_steps=28 format=3]
 
-[ext_resource type="Script" uid="uid://46n84pblytya" path="res://Scripts/Level/block.gd" id="2_block"]
-[ext_resource type="Script" uid="uid://dlvuyxe3gesya" path="res://Scripts/Level/crumble_block.gd" id="3_crumble"]
-[ext_resource type="Script" uid="uid://catlhkupy8d5i" path="res://Scripts/Level/anchor.gd" id="4_anchor"]
-[ext_resource type="Script" uid="uid://wa3ylqlg5il6" path="res://Scripts/Level/zone.gd" id="5_zone"]
-[ext_resource type="Script" uid="uid://bq5cjco7ndl7o" path="res://Scripts/Dialogue/dialogue_trigger.gd" id="8_044ci"]
-[ext_resource type="Script" uid="uid://dhkojp4r1n4od" path="res://Scripts/Dialogue/dialogue_step.gd" id="9_p8x32"]
-[ext_resource type="Script" uid="uid://cas25ucq1e4dg" path="res://Scripts/Dialogue/dialogue_line.gd" id="10_baih7"]
-[ext_resource type="Script" uid="uid://clxeo0rctbcjm" path="res://Scripts/Level/plate.gd" id="10_plate"]
-[ext_resource type="Script" uid="uid://38vt8q0pmunw" path="res://Scripts/Level/gate.gd" id="11_gate"]
-[ext_resource type="AudioStream" uid="uid://cikgd2sxhqy6k" path="res://Audio/blip_girl.wav" id="11_y8y5s"]
-[ext_resource type="AudioStream" uid="uid://bf46rtk5ux64t" path="res://Audio/blip_boy.wav" id="12_aya2x"]
+[ext_resource type="Script" path="res://Scripts/Level/block.gd" id="2_block"]
+[ext_resource type="Script" path="res://Scripts/Level/crumble_block.gd" id="3_crumble"]
+[ext_resource type="Script" path="res://Scripts/Level/anchor.gd" id="4_anchor"]
+[ext_resource type="PackedScene" path="res://Scenes/Prefabs/key_item.tscn" id="5_baih7"]
+[ext_resource type="Script" path="res://Scripts/Level/zone.gd" id="5_zone"]
+[ext_resource type="Script" path="res://Scripts/Level/key_item.gd" id="6_y8y5s"]
+[ext_resource type="Script" path="res://Scripts/Dialogue/dialogue_trigger.gd" id="8_044ci"]
+[ext_resource type="Script" path="res://Scripts/Dialogue/dialogue_step.gd" id="9_p8x32"]
+[ext_resource type="Script" path="res://Scripts/Dialogue/dialogue_line.gd" id="10_baih7"]
+[ext_resource type="Script" path="res://Scripts/Level/plate.gd" id="10_plate"]
+[ext_resource type="Script" path="res://Scripts/Level/gate.gd" id="11_gate"]
+[ext_resource type="AudioStream" path="res://Audio/blip_girl.wav" id="11_y8y5s"]
+[ext_resource type="AudioStream" path="res://Audio/blip_boy.wav" id="12_aya2x"]
 [ext_resource type="PackedScene" path="res://Scenes/Prefabs/tether_rig.tscn" id="13_7dhkk"]
-[ext_resource type="Script" uid="uid://dmn171fwmr3bv" path="res://Scripts/Dialogue/dialogue_call.gd" id="13_go56e"]
+[ext_resource type="Script" path="res://Scripts/Dialogue/dialogue_call.gd" id="13_go56e"]
+[ext_resource type="Script" path="res://Scripts/main.gd" id="16_aya2x"]
+[ext_resource type="Script" path="res://Scripts/phase_profile.gd" id="17_go56e"]
+[ext_resource type="Resource" path="res://Data/Phases/phase_1_together.tres" id="18_c7ddf"]
+[ext_resource type="Resource" path="res://Data/Phases/phase_2_closer.tres" id="19_1xmnc"]
+[ext_resource type="Resource" path="res://Data/Phases/phase_3_inseparable.tres" id="20_himwy"]
 
 [sub_resource type="Resource" id="Resource_1xmnc"]
 script = ExtResource("10_baih7")
@@ -189,11 +196,26 @@ position = Vector2(4000, -900)
 script = ExtResource("2_block")
 size = Vector2(200, 1300)
 
+[node name="Test_KeyBarrier" type="StaticBody2D" parent="Level"]
+position = Vector2(700, -200)
+script = ExtResource("2_block")
+size = Vector2(36, 200)
+color = Color(0.42, 0.3, 0.33, 1)
+
 [node name="Anchors" type="Node2D" parent="."]
 
 [node name="I_Ring" type="Node2D" parent="Anchors"]
 position = Vector2(1150, -230)
 script = ExtResource("4_anchor")
+
+[node name="Mechanics" type="Node2D" parent="."]
+
+[node name="Test_Key" type="Area2D" parent="Mechanics" instance=ExtResource("5_baih7")]
+position = Vector2(590, -34)
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("6_y8y5s")
+targets = Array[NodePath]([NodePath("../../Level/Test_KeyBarrier")])
 
 [node name="Zones" type="Node2D" parent="."]
 
@@ -294,5 +316,8 @@ script = ExtResource("8_044ci")
 steps = Array[ExtResource("9_p8x32")]([SubResource("Resource_g31rw"), SubResource("Resource_2hqkx")])
 size = Vector2(60, 144)
 
-[node name="TetherRig" parent="." instance=ExtResource("13_7dhkk")]
+[node name="TetherRig" type="Node2D" parent="." instance=ExtResource("13_7dhkk")]
 position = Vector2(40, -20)
+script = ExtResource("16_aya2x")
+phase_profiles = Array[ExtResource("17_go56e")]([ExtResource("18_c7ddf"), ExtResource("19_1xmnc"), ExtResource("20_himwy")])
+debug_tools = false

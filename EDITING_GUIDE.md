@@ -48,6 +48,9 @@ profile). Overrides only affect that level. To change Wisp/Ember everywhere, ope
 | Phase order, camera, sever bonus, debug keys, fall safety net | `TetherRig` root (in `tether_rig.tscn`, or per level on the instance) |
 | Level geometry, rings, checkpoints, phase changes, endings | Nodes under `Level`, `Anchors`, `Zones` |
 | Dialogue and scripted events | Nodes under `Dialogue` (DialogueTrigger) |
+| **Fonts** for speech bubbles, messages, titles and subtitles | `TetherRig` root → **Fonts** group (see [Fonts](#fonts)) |
+| **Position / colour / shadow** of the title card, centered message and FPS counter | `HUD` → `TitleCard`, `Message`, `FPS` in `tether_rig.tscn` (see [Positioning the title card, message and FPS counter](#positioning-the-title-card-message-and-fps-counter)) |
+| A **web (browser) build** and hosting it online | `CraveFX_Assessment/Builds/Web/`, outside the project (see [EXPORT_GUIDE.md](EXPORT_GUIDE.md)) |
 | Volume, music | Pause menu (Esc) / `SoundManager` autoload / Audio bus panel |
 
 ---
@@ -141,7 +144,8 @@ Use **F4** (slow-motion) to watch a tug frame by frame.
 ### Debug keys (TetherRig → Debug → `debug_tools`; turn off before sharing a build)
 | Key | Does |
 |---|---|
-| F1 | Toggle the debug readout (top) and controls reminder (bottom). Both start hidden; tick `show_debug_text` / `show_controls` in TetherRig → Debug to start with them on |
+| F1 | Toggle the **FPS counter** (top left, "FPS: 60"). On by default; untick `show_fps` in TetherRig → Debug to start with it off. Works even with `debug_tools` off |
+| Shift+F1 | Toggle the debug readout (top, under the FPS counter) and controls reminder (bottom). Both start hidden; tick `show_debug_text` / `show_controls` in TetherRig → Debug to start with them on |
 | F2 | Jump to the next phase |
 | F3 | Teleport both to the next checkpoint (wraps around) |
 | F4 | Slow-motion toggle (`slow_motion_scale`, default 0.25) |
@@ -161,9 +165,9 @@ Use **F4** (slow-motion) to watch a tug frame by frame.
 
   | Method | Args | Use |
   |---|---|---|
-  | `show_message` | text, seconds (default 2.5) | Centered text that fades in and out |
-  | `show_title` | title, subtitle (optional) | Big title card, like the phase titles |
-  | `show_ending` | text | Darken the screen and leave a final line up |
+  | `show_message` | text, seconds (default 2.5), font (optional) | Centered text that fades in and out |
+  | `show_title` | title, subtitle (optional), title font (optional), subtitle font (optional) | Big title card, like the phase titles |
+  | `show_ending` | text, font (optional) | Darken the screen and leave a final line up |
   | `lock_input` | seconds | Cutscene: ignore the player for a while |
   | `fade_from_black` / `fade_to_black` | duration | Same as a DialogueFade step |
   | `reveal_tether` | (none; optional rope_time, hold) | Intro: cord fades in alone on the black, drawn in front |
@@ -207,6 +211,36 @@ Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`,
 - Level1_Visual's left edge: no WallLeft. The field continues (`Level/I_GroundLeft`, scenery only) with
   `Decor/StartTree`; `Bounds/LeftBorder` is an invisible wall at x = -200 (where WallLeft's face was), and
   `Dialogue/LeftBorderLine` plays Wisp's "The other way, silly!" once. Move the wall and the trigger together.
+- Characters are silhouettes everywhere by default (`silhouette` in `Scripts/character.gd`), not only in the art levels.
+
+### Art: the forest edge (Level2_Visual)
+`Scenes/Level2_Visual.tscn` is Level2 with art applied - same layout and triggers, built from Level2. Differences:
+WallLeft is gone (floor continues as `Level/I_GroundLeft`, `Decor/StartTree`, `Bounds/LeftBorder` + the same
+one-time line), an end tree past the exit, a few decor trees on wide platforms (`Decor/Tree_A`..`F`, no collision),
+and the two fireworks were lowered 13 px / 1 px so they stand on the ground.
+- **LevelArt** settings for the overcast forest: `overcast` (0 = clear sky; ~0.9 = heavy cloud deck), cloud deck
+  light/dark colours and `cloud_wind`; `backdrop` = FOREST_EDGE (tree clumps with open plain between - `woodland`
+  sets how much is trees); `foreground_trees` (dark trunks passing in front; 0 = none) and its opacity.
+  Level1_Visual uses the same node with `overcast` 0 and MEADOW_HILLS, so it looks as before.
+- Level2 and Level2_Visual are separate files: layout edits to one do NOT carry over to the other.
+- Small hill blocks (I_Ground23/30-42 that make the ground uneven) sit at the top of the `Level` list so they draw
+  behind the main ground - in Godot the lower a node is in the list, the more in front it draws.
+
+### Prefabs - edit one file, every copy follows
+Each copy in a level only stores its position (and anything you change on that copy, shown with a ↺ revert
+arrow in the Inspector). To change all of them, open the prefab and edit its root node.
+- **Branch** `Scenes/Prefabs/crumble_branch.tscn` (CrumbleBlock): `crumble_delay`, `respawn_delay`; Look (bark,
+  leaves, twigs); Feel (`shake_strength` before it snaps, `break_particles`, `regrow_fade`); Sound: `creak_sound`
+  (starts to give), `break_sound`, `regrow_sound`, each with a volume. Collision is always exactly `size`.
+- **Boulder** `Scenes/Prefabs/boulder.tscn`: `rock_seed` (shape), stone/rim-light/moss colours, `chunks`, optional
+  `break_sound`. Collision is the full `size` box (191×200), so the level plays the same as before.
+- **Firework** `Scenes/Prefabs/firework_key.tscn` (KeyItem, FIREWORK look): body/band/glow colours, `burst_colors`,
+  `travel_time` + `arc_height` (the rocket's flight), `shake`, `burst_sparks`; Sound: `collect_sound` (touched),
+  `launch_sound` (flight), `impact_sound` (obstacle destroyed). Connect targets as for KeyItem below. Place it so
+  its stick ends on the ground: the rocket's centre is 22 px above the surface.
+- **Ring** `Scenes/Prefabs/tether_anchor.tscn` (TetherAnchor): `hook_sound` (cord hooks on) and `release_sound`,
+  each with a volume. Used by every ring in Level1_Visual and Level2_Visual. (Ring colour/glow there is set by
+  LevelArt's `ring_color`/`ring_glow`.)
 
 ### Level pieces
 - **Resize handles** (Box Resize plugin, `addons/box_resize/`): select a Block, CrumbleBlock, Gate, Zone,
@@ -214,7 +248,16 @@ Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`,
   shows the size while dragging, and Ctrl+Z undoes it. If no handles appear: Project → Project Settings → Plugins → tick Box Resize.
   Change the snap step with `SNAP` at the top of `addons/box_resize/plugin.gd`.
 - **Block** / **CrumbleBlock** / **Gate**: position = top-left; resize with `size`. Crumble: `crumble_delay`, `respawn_delay`. Gate: point `plate_path` at a Plate.
-- **TetherAnchor** (ring): drag anywhere; the faint circle shows hook range.
+- **KeyItem** (`Scenes/Prefabs/key_item.tscn`, or Add Node → KeyItem): touch it and every node in its `targets`
+  bursts apart (spark along the link, fragments in the obstacle's colour, tiny shake) and is gone for good.
+  Connect: select the key → Inspector `targets` → Add Element → drag the obstacle (usually a Block) from the
+  Scene dock onto the slot. One key can clear several obstacles. Dashed lines in the editor show the links
+  (red X = missing target). Also: `activated_by`, `travel_time`, `shake`, `fragments`, colour/size/bob, optional
+  collect/launch/impact sounds, `debug`. Callable from a DialogueCall as `trigger_key`. `look` = FIREWORK
+  (rocket that flies to the target and explodes; the default) or GEM (diamond + spark along the link).
+  Targets with their own break (Boulder) break their own way. Test setup: prototype
+  `Mechanics/Test_Key` → `Level/Test_KeyBarrier`.
+- **TetherAnchor** (ring): drag anywhere; the faint circle shows hook range. Prefer the prefab (see Prefabs).
 - **LevelExit** (`Scenes/Prefabs/level_exit.tscn`, or Add Node → LevelExit): walk in → fade to black → load
   `next_scene`, and the next level fades in. Type a scene name without `.tscn` (`prototype`, `Level1`,
   `Levels/Level2`); names are looked up in `SCENES_FOLDER` at the top of `Scripts/Level/level_exit.gd`
@@ -228,3 +271,133 @@ Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`,
 - Bus volumes: pause menu sliders, or the **Audio** panel at the bottom of the editor (buses: Master, Music, Sfx).
 - Dialogue blip loudness: each DialogueLine's `text_volume` (default -10 dB).
 - Controls: `Scripts/main.gd` → `_ensure_input()`, or define the same action names in Project Settings → Input Map (those win).
+
+### Fonts
+
+The font files live in `Fonts/` (each family in its own folder, with its `OFL.txt` licence):
+
+| Text | Default font | Default size | Set by |
+|---|---|---|---|
+| Speech bubbles (every DialogueLine) | `Fonts/Neucha/Neucha-Regular.ttf` | 14 | TetherRig → Fonts → `dialogue_font`, `dialogue_font_size` |
+| Centered messages (`show_message`, respawn fades, ending text) | `Fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf` | 26 | TetherRig → Fonts → `message_font`, `message_font_size` |
+| Title card, main line (phase titles, `show_title`) | `Fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf` | 30 | TetherRig → Fonts → `title_font`, `title_font_size` |
+| Title card, subtitle line | `Fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf` | 20 | TetherRig → Fonts → `subtitle_font`, `subtitle_font_size` |
+
+Every font slot takes a `.ttf`, `.otf`, `.woff`/`.woff2`, or a `FontVariation` `.tres`. To change one,
+**drag the file from the FileSystem dock onto the slot** in the Inspector. To go back to the
+default, click the slot's ↺ revert arrow. If you clear a slot (right-click → Clear), that text
+uses Godot's built-in font.
+
+**Which font wins.** The most specific setting is used:
+
+1. The font set on that one line, title or call (see below)
+2. The TetherRig's **Fonts** group on the level's TetherRig instance (that level only)
+3. The TetherRig's **Fonts** group in `Scenes/Prefabs/tether_rig.tscn` (every level)
+
+#### Change a font for the whole game
+Open `Scenes/Prefabs/tether_rig.tscn`, select the **TetherRig** root, expand **Fonts**, and drag
+the new font onto `dialogue_font`, `message_font`, `title_font` or `subtitle_font`. Change the
+matching `_font_size` if the new font looks too big or too small. Each font is a little bigger or
+smaller than another at the same size (Neucha looks smaller than DM Serif at the same px).
+Display/serif fonts like DM Serif have very thin strokes: below about 18 px they almost vanish
+over the bright sky, which is why the subtitle defaults to 20. To add a drop shadow back to any of
+the HUD texts, see "Colours and shadows" under Positioning the title card, message and FPS counter.
+
+#### Change a font for one level
+Select the `TetherRig` instance inside the level scene (e.g. `Level1.tscn`) and change its
+**Fonts** group there. The level shows that field as overridden, and the other levels keep
+the rig's fonts.
+
+#### Change the font of one line of dialogue
+Select the DialogueTrigger, open its `steps`, expand the **DialogueLine**, and drag a font onto
+its **`font`** slot. Set **`font_size`** above 0 to change the size for that line too.
+Empty `font` / `font_size = 0` = use the TetherRig's `dialogue_font` / `dialogue_font_size`.
+BBCode works as before. `[font=res://Fonts/...ttf]word[/font]` and `[font_size=20]word[/font_size]`
+also switch font or size for just a few words.
+
+#### Change the font of one phase title
+Double-click the phase `.tres` in `Data/Phases/` → **Title card** → drag a font onto
+**`title_font`** (main line) and/or **`subtitle_font`**. Empty = the TetherRig's defaults.
+
+#### Change the font of one scripted message or title (DialogueCall)
+The font goes in the call's `args` array, after the normal arguments:
+
+- `show_message` → `["Something's wrong.", 3.0, <font>]`
+- `show_title` → `["Honeymoon", "Year 0", <title font>, <subtitle font>]`
+- `show_ending` → `["The end.", <font>]`
+
+In the Inspector: expand `args` → **Add Element** → click the new element's type icon (pencil) →
+choose **Object** → drag the font file onto it. All earlier args must be filled in, so to set a
+message font you must also give the seconds (e.g. `2.5`). To change **only the subtitle** of a
+title, leave the 3rd element as **Nil** (null = default title font) and put the font in the 4th.
+
+#### Add a new font file
+1. In Explorer, copy the `.ttf`/`.otf` into a new folder under `Fonts/` (e.g. `Fonts/MyFont/`),
+   with its licence file. You can also drag it from Explorer into the FileSystem dock.
+2. Switch back to Godot. It imports the file automatically (a `.import` file appears next to it).
+3. Drag it onto any font slot above.
+
+Optional, in the **Import** dock (select the font file): `Antialiasing`, `Hinting`, `Generate Mipmaps`,
+or `Multichannel Signed Distance Field` (MSDF) for text that stays sharp when scaled. Click **Reimport** after changing these.
+
+#### Tweaks without a new file (FontVariation)
+FileSystem → right-click `Fonts/` → **New Resource → FontVariation**, save it (e.g.
+`Fonts/neucha_wide.tres`), set its `base_font` to the font file, then adjust `spacing_glyph`
+(letter spacing), `spacing_space`, `variation_embolden` (thicker/thinner), etc. Drag the `.tres` onto
+any font slot, the same as a `.ttf`.
+
+#### Bold and italic in speech bubbles
+Neucha has no bold or italic file, so for `[b]` and `[i]` the bubble uses a thickened / slanted copy
+of whatever font the line uses. How strong this is: `BOLD_EMBOLDEN` and `ITALIC_SLANT` at the top of
+`Scripts/Dialogue/speech_bubble.gd`. To use a real italic file for a few words, use BBCode:
+`[font=res://Fonts/DM_Serif_Display/DMSerifDisplay-Italic.ttf]word[/font]`.
+
+#### Not covered by these settings
+The F1 debug readout, the controls reminder, the pause menu and the editor-only labels still use
+Godot's default font. Code: `Scripts/hud.gd` (`set_fonts`, `show_message`, `show_title`),
+`Scripts/Dialogue/speech_bubble.gd` (`_apply_font`), `Scripts/main.gd` (Fonts group).
+
+### Positioning the title card, message and FPS counter
+
+These are real nodes you can see and drag in the editor:
+
+```
+TetherRig
+└─ HUD
+   ├─ TitleCard   (moves the title + subtitle together)
+   │  ├─ Title     (main line, e.g. "Honeymoon")
+   │  └─ Subtitle  (e.g. "Year 0", stacks under the title automatically)
+   ├─ Message     (show_message, respawn fades, ending text)
+   └─ FPS         (FPS counter, top left)
+```
+
+1. Open `Scenes/Prefabs/tether_rig.tscn` and switch to the **2D** view.
+2. Find the blue rectangle: that's the game screen (1280×720). The HUD's sample text
+   ("Honeymoon / Year 0", "Something's wrong.", "FPS: 60") is drawn in it, in the real fonts and sizes from
+   TetherRig → Fonts. Zoom out (or press F with the HUD selected) if you can't see it.
+3. Click `TitleCard`, `Message` or `FPS` in the Scene dock and **drag it** in the 2D view. Drag its edge
+   handles to make the box wider or narrower (text is centered in the box, and long messages wrap at its width).
+4. Press F5. The game uses those positions. The sample text is editor-only; in game the labels start empty.
+
+Tips:
+- **Anchors** (the green pins / Layout → Anchors Preset in the toolbar) decide what the position is relative
+  to. TitleCard is anchored to the **top center**, Message to the **center**, FPS to the **top left**, so
+  they stay in place on any window size or shape. If you move Message near the bottom, change its preset to
+  **Center Bottom** so it stays near the bottom on tall/wide windows.
+- Exact values: Inspector → **Layout → Transform → Position / Size** (or the anchor offsets).
+- **Gap between title and subtitle:** TitleCard → Theme Overrides → Constants → `separation` (px, can be negative).
+- **Colours and shadows:** select Title / Subtitle / Message / FPS → Theme Overrides → Colors
+  (`font_color`, `font_shadow_color`, `font_outline_color`) and Constants (`shadow_offset_x/y`, `outline_size`).
+- **Fonts and sizes** still come from TetherRig → Fonts (setting a font on these labels directly gets
+  overwritten when the game starts). The FPS counter's size is on the FPS node itself (`font_size`).
+- **Change it in `tether_rig.tscn`, not in a level.** Level1_Visual has *Editable Children* on its TetherRig,
+  so anything you change on these labels inside the level (and save) becomes a level-only override that wins over
+  the rig. If a change to the rig doesn't show up in a level, open the level, select the label, and click the
+  revert arrow next to the overridden property (or delete that property's line under the level's node).
+- Hide the preview while editing levels: select `HUD` → untick **`editor_preview`** (editor only, no effect in game).
+  In a level scene the preview shows at the screen position (around the world origin), not over the level.
+- Everything scales with the window, because Project Settings → Display → Window → Stretch → Mode is `canvas_items`.
+
+### Web build
+Exporting the game for browsers, testing it locally, and hosting it on GitHub Pages are all covered step by
+step in **[EXPORT_GUIDE.md](EXPORT_GUIDE.md)**.

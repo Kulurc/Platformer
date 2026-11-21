@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Level/crumble_block.gd" id="1_cr"]
+
+[node name="CrumbleBranch" type="StaticBody2D"]
+script = ExtResource("1_cr")
+size = Vector2(96, 24)

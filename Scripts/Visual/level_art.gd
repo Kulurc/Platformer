@@ -27,13 +27,25 @@ class Painter extends Node2D:
 @export var sun_position := Vector2(0.8, 0.1)
 @export_range(0.0, 2.0, 0.05) var sun_power := 0.85
 @export_range(0.0, 1.0, 0.01) var sun_rays := 0.10
+## 0 = clear sky. Higher = a grey cloud deck covering the sky (the forest uses ~0.85).
+@export_range(0.0, 1.0, 0.01) var overcast := 0.0
+@export var cloud_deck_light := Color("c3c8c9")
+@export var cloud_deck_dark := Color("6c747a")
+## How fast the cloud deck drifts on its own.
+@export_range(0.0, 2.0, 0.01) var cloud_wind := 0.15
 
 @export_group("Clouds (fog streaks)")
 @export_range(0, 30) var cloud_count := 6
 @export_range(0.0, 0.3, 0.005) var cloud_opacity := 0.05
 @export_range(0.0, 0.3, 0.005) var cloud_parallax := 0.02
+@export var cloud_color := Color(1, 1, 1)
+
+enum Backdrop { MEADOW_HILLS, FOREST_EDGE }
 
 @export_group("Background hills")
+## MEADOW_HILLS: open hills with a few trees (Level1). FOREST_EDGE: tree lines in clumps with
+## open plains between them (Level2).
+@export var backdrop := Backdrop.MEADOW_HILLS
 @export var haze := Color("d3e6f0")
 @export var far_hills := Color("93b6cf")
 @export var mid_hills := Color("6f9f8a")
@@ -49,6 +61,8 @@ class Painter extends Node2D:
 @export_range(0.0, 1.0, 0.01) var mid_parallax := 0.18
 @export_range(0.0, 1.0, 0.01) var meadow_parallax := 0.35
 @export_range(0, 120) var background_trees := 40
+## FOREST_EDGE only: how much of the background is woodland vs open plain (0..1).
+@export_range(0.0, 1.0, 0.01) var woodland := 0.55
 
 @export_group("Meadow flowers (background)")
 @export_range(0, 2000) var flower_count := 260
@@ -89,6 +103,9 @@ class Painter extends Node2D:
 @export var foreground_grass := true
 ## > 1 = passes in front faster than the level (sense of depth).
 @export_range(1.0, 2.5, 0.05) var foreground_parallax := 1.3
+## Dark tree trunks passing in front of the level (0 = none), per ~2 screen widths.
+@export_range(0, 6) var foreground_trees := 0
+@export_range(0.0, 1.0, 0.01) var foreground_tree_opacity := 0.92
 
 @export_group("Characters & rings")
 ## Dark bodies with a rim of light in each character's own colour, glowing eyes.
@@ -112,6 +129,7 @@ var _vs := Vector2(1280, 720)
 var _backdrop: Painter
 var _dust: Painter
 var _fg: Painter
+var _sky_mat: ShaderMaterial
 
 
 func _ready() -> void:
@@ -134,6 +152,8 @@ func _process(dt: float) -> void:
 	if cam:
 		_cam = cam.get_screen_center_position()
 		_zoom = cam.zoom.x
+	if _sky_mat and overcast > 0.0:
+		_sky_mat.set_shader_parameter("cloud_offset", Vector2(_cam.x * 0.00012 + _t * cloud_wind * 0.01, 0.0))
 	_backdrop.queue_redraw()
 	_dust.queue_redraw()
 	if _fg:
@@ -173,6 +193,7 @@ func _apply_bodies() -> void:
 func _painter(parent: Node, fn: Callable) -> Painter:
 	var p := Painter.new()
 	p.fn = fn
+	FastDraw.use_on(p)  # circles are FastDraw discs: batched instead of one draw call each
 	parent.add_child(p)
 	return p
 
@@ -200,6 +221,10 @@ func _build() -> void:
 	sm.set_shader_parameter("sun", sun_position)
 	sm.set_shader_parameter("sun_power", sun_power)
 	sm.set_shader_parameter("rays", sun_rays)
+	sm.set_shader_parameter("overcast", overcast)
+	sm.set_shader_parameter("cloud_light", cloud_deck_light)
+	sm.set_shader_parameter("cloud_dark", cloud_deck_dark)
+	_sky_mat = sm
 
 	var bg_layer := CanvasLayer.new()
 	bg_layer.layer = -9
@@ -287,12 +312,15 @@ func _ridge(n: Node2D, f: float, base: float, amp: float, freq: float, ph: float
 func _haze_band(n: Node2D, y: float, h: float, a: float) -> void:
 	var c0 := Color(haze, 0.0)
 	var c1 := Color(haze, a)
-	n.draw_polygon(PackedVector2Array([Vector2(0, y - h), Vector2(_vs.x, y - h), Vector2(_vs.x, y), Vector2(0, y)]), PackedColorArray([c0, c0, c1, c1]))
-	n.draw_polygon(PackedVector2Array([Vector2(0, y), Vector2(_vs.x, y), Vector2(_vs.x, y + h * 0.5), Vector2(0, y + h * 0.5)]), PackedColorArray([c1, c1, c0, c0]))
+	FastDraw.quad(n, PackedVector2Array([Vector2(0, y - h), Vector2(_vs.x, y - h), Vector2(_vs.x, y), Vector2(0, y)]), PackedColorArray([c0, c0, c1, c1]))
+	FastDraw.quad(n, PackedVector2Array([Vector2(0, y), Vector2(_vs.x, y), Vector2(_vs.x, y + h * 0.5), Vector2(0, y + h * 0.5)]), PackedColorArray([c1, c1, c0, c0]))
 
 
 func _paint_backdrop(n: Node2D) -> void:
 	_paint_clouds(n)
+	if backdrop == Backdrop.FOREST_EDGE:
+		_paint_forest(n)
+		return
 	var zl := lerpf(1.0, _zoom, 0.6)
 	var hy := _horizon()
 	_ridge(n, far_parallax, -40.0, 30.0, 0.0022, 1.0, far_hills)
@@ -307,9 +335,9 @@ func _paint_backdrop(n: Node2D) -> void:
 		var sx := fposmod((u - _cam.x * mid_parallax) * zl + _vs.x * 0.5, _vs.x + 200.0) - 100.0
 		var by := mid_ys[clampi(int((sx + 10.0) / 6.0), 0, mid_ys.size() - 1)]
 		var s := r.randf_range(0.7, 1.3) * zl
-		n.draw_line(Vector2(sx, by + 4.0), Vector2(sx, by - 14.0 * s), tree_col, 2.0 * s)
+		n.draw_rect(Rect2(sx - s, by - 14.0 * s, 2.0 * s, 4.0 + 14.0 * s), tree_col)
 		for j in 6:
-			n.draw_circle(Vector2(sx + r.randf_range(-9, 9) * s, by - 18.0 * s - r.randf_range(0, 12) * s), r.randf_range(5, 9) * s, tree_col)
+			FastDraw.circle(n, Vector2(sx + r.randf_range(-9, 9) * s, by - 18.0 * s - r.randf_range(0, 12) * s), r.randf_range(5, 9) * s, tree_col)
 	_haze_band(n, hy + 40.0 * zl, 60.0 * zl, 0.35)
 	# flower meadow - flowers are placed ON the meadow layer, so they move with it
 	var near_ys := _ridge(n, meadow_parallax, 70.0, 16.0, 0.0045, 2.0, meadow)
@@ -325,7 +353,7 @@ func _paint_backdrop(n: Node2D) -> void:
 			while sx <= _vs.x + 10.0:
 				if sx >= -10.0:
 					var y := near_ys[clampi(int((sx + 10.0) / 6.0), 0, near_ys.size() - 1)] + depth * zl
-					n.draw_circle(Vector2(sx, y), rad * zl, Color(c, flower_opacity))
+					FastDraw.circle(n, Vector2(sx, y), rad * zl, Color(c, flower_opacity))
 				sx += period * zl
 	_haze_band(n, hy + 90.0 * zl, 50.0 * zl, 0.18)
 
@@ -343,8 +371,8 @@ func _paint_clouds(n: Node2D) -> void:
 			var rad := r.randf_range(18, 40) * s
 			var stretch := r.randf_range(2.8, 4.5)
 			n.draw_set_transform(Vector2(cx, cy) + off, 0.0, Vector2(stretch, 0.55))
-			n.draw_circle(Vector2.ZERO, rad * 1.4, Color(1, 1, 1, cloud_opacity * 0.7))
-			n.draw_circle(Vector2.ZERO, rad, Color(1, 1, 1, cloud_opacity))
+			FastDraw.circle(n, Vector2.ZERO, rad * 1.4, Color(cloud_color, cloud_opacity * 0.7))
+			FastDraw.circle(n, Vector2.ZERO, rad, Color(cloud_color, cloud_opacity))
 	n.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -365,8 +393,85 @@ func _paint_dust(n: Node2D) -> void:
 		p = Vector2(fposmod(p.x - origin.x, tile.x), fposmod(p.y - origin.y, tile.y)) + origin
 		var s := r.randf_range(0.8, 1.8)
 		var a := 0.32 + 0.12 * sin(_t * 0.7 + ph)
-		n.draw_circle(p, s * 3.0, Color(dust_color, 0.05))
-		n.draw_circle(p, s, Color(dust_color, a))
+		FastDraw.circle(n, p, s * 3.0, Color(dust_color, 0.05))
+		FastDraw.circle(n, p, s, Color(dust_color, a))
+
+
+# ---------------------------------------------------------------- forest edge backdrop
+
+## One background tree: a pine (kind 0) or a round broadleaf (kind 1). x, base = screen px.
+func _bg_tree(n: Node2D, x: float, base: float, s: float, kind: int, col: Color, r: RandomNumberGenerator) -> void:
+	if kind == 0:
+		var h := 70.0 * s
+		var w := 17.0 * s
+		n.draw_rect(Rect2(x - 1.5 * s, base - 10.0 * s, 3.0 * s, 12.0 * s), col)
+		for k in 3:
+			var top := base - h * (0.45 + 0.27 * k)
+			var bot := base - h * 0.16 * (k + 1) - 6.0 * s
+			var ww := w * (1.0 - 0.24 * k)
+			FastDraw.tri(n, Vector2(x - ww, bot), Vector2(x + ww, bot), Vector2(x, top - h * 0.12), col)
+	else:
+		var h := 46.0 * s
+		n.draw_rect(Rect2(x - 2.0 * s, base - h * 0.6, 4.0 * s, h * 0.6 + 2.0), col)
+		for j in 7:
+			FastDraw.circle(n, Vector2(x + r.randf_range(-13, 13) * s, base - h * 0.62 - r.randf_range(0, 22) * s), r.randf_range(8, 14) * s, col)
+
+
+## Tree clumps along a ridge: groups of trees with open plain between them.
+func _tree_band(n: Node2D, ys: PackedFloat32Array, f: float, seed_: int, period: float, clumps: int,
+		density: float, s_min: float, s_max: float, col: Color, sink: float) -> void:
+	var zl := lerpf(1.0, _zoom, 0.6)
+	var r := RandomNumberGenerator.new()
+	r.seed = seed_
+	for c in clumps:
+		var cu := r.randf_range(0.0, period)
+		var width := r.randf_range(160.0, 520.0) * (0.5 + woodland)
+		var count := int(width / 26.0 * density)
+		if r.randf() > woodland + 0.25:
+			count = r.randi_range(0, 2)  # a lone tree or two out on the plain
+		for i in count:
+			var u := cu + r.randf_range(-width * 0.5, width * 0.5)
+			var edge := 1.0 - absf(u - cu) / (width * 0.5)  # clumps are taller in the middle
+			var s := lerpf(s_min, s_max, r.randf()) * (0.65 + 0.35 * edge) * zl
+			var kind := 0 if r.randf() < 0.55 else 1
+			var sx := fposmod((u - _cam.x * f) * zl + _vs.x * 0.5, period * zl) - 120.0
+			while sx <= _vs.x + 120.0:
+				if sx >= -120.0:
+					var by := ys[clampi(int((sx + 10.0) / 6.0), 0, ys.size() - 1)] + sink * zl
+					var rr := RandomNumberGenerator.new()
+					rr.seed = seed_ * 131 + c * 17 + i
+					var tint := col.lerp(Color("8a8450") if (c + i) % 3 == 0 else Color("5e7a78"), rr.randf() * 0.14)
+					_bg_tree(n, sx, by, s, kind, tint, rr)
+				sx += period * zl
+
+
+func _paint_forest(n: Node2D) -> void:
+	var zl := lerpf(1.0, _zoom, 0.6)
+	var hy := _horizon()
+	var far_ys := _ridge(n, far_parallax, -40.0, 26.0, 0.0022, 1.0, far_hills)
+	_tree_band(n, far_ys, far_parallax, 21, 2600.0, 16, 1.5, 0.35, 0.55, far_hills, 6.0)
+	_haze_band(n, hy, 80.0 * zl, 0.65)
+	var mid_ys := _ridge(n, mid_parallax, 12.0, 20.0, 0.0035, 4.0, mid_hills)
+	_tree_band(n, mid_ys, mid_parallax, 8, 3000.0, 12, 1.2, 0.7, 1.15, mid_hills.darkened(0.08), 8.0)
+	_haze_band(n, hy + 44.0 * zl, 70.0 * zl, 0.38)
+	var near_ys := _ridge(n, meadow_parallax, 74.0, 14.0, 0.0045, 2.0, meadow)
+	_tree_band(n, near_ys, meadow_parallax, 5, 3600.0, 5, 0.7, 1.4, 2.1, meadow.darkened(0.12), 14.0)
+	if flower_count > 0 and not flower_colors.is_empty():
+		var r := RandomNumberGenerator.new()
+		r.seed = 3
+		var period := 2400.0
+		for i in flower_count:
+			var u := r.randf_range(0.0, period)
+			var depth := r.randf_range(3.0, 70.0)
+			var c: Color = flower_colors[r.randi() % flower_colors.size()]
+			var rad := r.randf_range(0.8, 1.9)
+			var sx := fposmod((u - _cam.x * meadow_parallax) * zl, period * zl)
+			while sx <= _vs.x + 10.0:
+				if sx >= -10.0:
+					var y := near_ys[clampi(int((sx + 10.0) / 6.0), 0, near_ys.size() - 1)] + depth * zl
+					FastDraw.circle(n, Vector2(sx, y), rad * zl, Color(c, flower_opacity))
+				sx += period * zl
+	_haze_band(n, hy + 96.0 * zl, 54.0 * zl, 0.2)
 
 
 # ---------------------------------------------------------------- foreground grass
@@ -375,6 +480,8 @@ func _paint_foreground(n: Node2D) -> void:
 	# drawn in screen units around the camera centre
 	n.draw_set_transform(-_vs * 0.5 / _zoom, 0.0, Vector2.ONE / _zoom)
 	var c := ground_deep
+	if foreground_trees > 0:
+		_paint_fg_trees(n)
 	var period := 1700.0
 	var k := _vs.x / 1280.0
 	for pass_ in 2:
@@ -393,5 +500,37 @@ func _paint_foreground(n: Node2D) -> void:
 					var x: float = sx + rep
 					if x < -60.0 or x > _vs.x + 60.0:
 						continue
-					n.draw_colored_polygon(PackedVector2Array([Vector2(x - w, _vs.y + 5.0), Vector2(x + w, _vs.y + 5.0), Vector2(x + lean, _vs.y - hgt)]), col)
+					FastDraw.tri(n, Vector2(x - w, _vs.y + 5.0), Vector2(x + w, _vs.y + 5.0), Vector2(x + lean, _vs.y - hgt), col)
 	n.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## Big dark trunks right in front of the camera (they pass by faster than the level).
+func _paint_fg_trees(n: Node2D) -> void:
+	var period := 2800.0
+	var k := _vs.x / 1280.0
+	var col := Color(ground_deep.darkened(0.25), foreground_tree_opacity)
+	var r := RandomNumberGenerator.new()
+	r.seed = 91
+	for i in foreground_trees:
+		var u := (float(i) + r.randf_range(0.15, 0.85)) * period / float(foreground_trees)
+		var w := r.randf_range(13.0, 22.0)
+		var lean := r.randf_range(-22.0, 22.0)
+		var sx := fposmod(u - _cam.x * foreground_parallax * 1.15, period) * k - 200.0
+		var stubs: Array[Vector3] = []
+		for b in 2:
+			stubs.append(Vector3(r.randf_range(_vs.y * 0.1, _vs.y * 0.35), r.randf_range(30.0, 70.0), -1.0 if b == 0 else 1.0))
+		var leaves: Array[Vector3] = []
+		for j in 9:
+			leaves.append(Vector3(r.randf_range(-120.0, 120.0), r.randf_range(-60.0, -5.0), r.randf_range(26.0, 50.0)))
+		if sx < -260.0 or sx > _vs.x + 260.0:
+			continue
+		var base := _vs.y + 20.0
+		var top := -40.0
+		FastDraw.quad(n, PackedVector2Array([Vector2(sx - w * 1.6, base), Vector2(sx + w * 1.6, base),
+			Vector2(sx + w * 0.5 + lean, top), Vector2(sx - w * 0.5 + lean, top)]), PackedColorArray([col]))
+		for st in stubs:
+			var t := 1.0 - (st.x - top) / (base - top)
+			var bx := sx + lean * t
+			FastDraw.tri(n, Vector2(bx, st.x - 3.5), Vector2(bx, st.x + 3.5), Vector2(bx + st.z * st.y, st.x - st.y * 0.6), col)
+		for lf in leaves:
+			FastDraw.circle(n, Vector2(sx + lean + lf.x, lf.y), lf.z, col)

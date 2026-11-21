@@ -17,6 +17,11 @@ enum Speaker { GIRL, BOY }
 @export var text_sound: AudioStream
 ## Seconds the finished message stays up before the next step.
 @export_range(0.0, 30.0, 0.1, "or_greater") var appear_time := 5.0
+## Optional: drag a font file (.ttf/.otf/.tres) here to use it for this line only.
+## Empty = the TetherRig's Fonts → dialogue_font (Neucha by default).
+@export var font: Font
+## Optional: text size for this line only, in px. 0 = TetherRig's Fonts → dialogue_font_size.
+@export_range(0, 64, 1, "or_greater") var font_size := 0
 
 
 func run(trigger: Node) -> void:

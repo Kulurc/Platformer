@@ -38,15 +38,33 @@ extends Node2D
 @export_range(0.0, 10.0, 0.05, "or_greater") var tether_reveal_time := 1.5    ## cord fade-in, seconds
 @export_range(0.0, 10.0, 0.05, "or_greater") var tether_reveal_hold := 1.2    ## cord alone on black, seconds
 
+@export_group("Fonts")
+## Default font for every speech bubble (DialogueLine). Drag any .ttf/.otf (or a
+## FontVariation .tres) from the FileSystem dock onto this slot. A DialogueLine's own
+## `font` overrides it for that one line. [b] and [i] use a bolded / slanted version.
+@export var dialogue_font: Font = preload("res://Fonts/Neucha/Neucha-Regular.ttf")
+@export_range(6, 64, 1, "or_greater") var dialogue_font_size := 14
+## Centered messages (show_message, fades, the ending text).
+@export var message_font: Font = preload("res://Fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf")
+@export_range(6, 96, 1, "or_greater") var message_font_size := 26
+## Main title line of title cards (phase titles and show_title).
+@export var title_font: Font = preload("res://Fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf")
+@export_range(6, 128, 1, "or_greater") var title_font_size := 30
+## Subtitle line under the title. DM Serif's hairlines get faint below ~18 px on a bright sky.
+@export var subtitle_font: Font = preload("res://Fonts/DM_Serif_Display/DMSerifDisplay-Regular.ttf")
+@export_range(6, 96, 1, "or_greater") var subtitle_font_size := 20
+
 @export_group("Debug")
-## F1 readout, F2 next phase, F3 next checkpoint, F4 slow-motion, F5 reset cord memory.
+## Shift+F1 readout, F2 next phase, F3 next checkpoint, F4 slow-motion, F5 reset cord memory.
 ## Turn off for builds you hand to other people.
 @export var debug_tools := true
 @export_range(0.05, 1.0, 0.05) var slow_motion_scale := 0.25
-## On-screen debug readout at the top (tension, grips, cord length...). F1 toggles it in game.
+## On-screen debug readout at the top (tension, grips, cord length...). Shift+F1 toggles it in game.
 @export var show_debug_text := false
-## Controls reminder along the bottom. F1 toggles it too.
+## Controls reminder along the bottom. Shift+F1 toggles it with the debug readout.
 @export var show_controls := false
+## "FPS: 60" counter at the top left. F1 toggles it in game.
+@export var show_fps := true
 
 @onready var wisp: Character = $Wisp
 @onready var ember: Character = $Ember
@@ -101,6 +119,11 @@ func _ready() -> void:
 			_fall_limit_y = maxf(_fall_limit_y, z.spawn_point().y)
 	_fall_limit_y += fall_respawn_depth
 	hud.set_overlays(show_debug_text, show_controls)
+	hud.set_fps_visible(show_fps)
+	hud.set_fonts(message_font, message_font_size, title_font, title_font_size,
+		subtitle_font, subtitle_font_size)
+	SpeechBubble.default_font = dialogue_font
+	SpeechBubble.default_font_size = dialogue_font_size
 	if start_black:
 		blackout.set_black(true)
 	elif Blackout.carry_in > 0.0:
@@ -109,6 +132,9 @@ func _ready() -> void:
 		blackout.set_black(true)
 		blackout.fade_to(0.0, Blackout.carry_in)
 	Blackout.carry_in = 0.0
+	var cover := get_node_or_null("/root/ScreenFade")
+	if cover and cover.is_holding():
+		cover.release_after(2)  # our own Blackout is black by now; hand over seamlessly
 	set_phase(1)
 	_update_camera(1.0, true)
 	camera.make_current()
@@ -215,7 +241,7 @@ func set_phase(p: int) -> void:
 	tw.tween_property(self, "_bleed", profile.bleed, 2.5)
 	tw.parallel().tween_property(self, "_anxiety", profile.anxiety, 2.5)
 	if profile.show_title:
-		hud.show_title(profile.title, profile.subtitle)
+		hud.show_title(profile.title, profile.subtitle, profile.title_font, profile.subtitle_font)
 
 
 # ---------------------------------------------------------------- helpers for DialogueCall
@@ -224,21 +250,24 @@ func set_phase(p: int) -> void:
 
 ## Centered text message: fades in, holds for `duration` seconds, fades out.
 ## When called from a DialogueCall, the next step waits until it has faded out.
-func show_message(msg: String, duration: float = 2.5) -> void:
-	hud.show_message(msg, duration)
+## `font` (optional): a Font resource for this message only; leave it out for message_font.
+func show_message(msg: String, duration: float = 2.5, font: Font = null) -> void:
+	hud.show_message(msg, duration, font)
 	await get_tree().create_timer(0.4 + duration + 0.8, false).timeout
 
 
 ## Big title card with an optional subtitle (same as the phase titles).
 ## When called from a DialogueCall, the next step waits until it has faded out.
-func show_title(title: String, subtitle: String = "") -> void:
-	hud.show_title(title, subtitle)
+## `title_font` / `subtitle_font` (optional): fonts for this card only; leave out for the defaults.
+func show_title(title: String, subtitle: String = "", title_font: Font = null, subtitle_font: Font = null) -> void:
+	hud.show_title(title, subtitle, title_font, subtitle_font)
 	await get_tree().create_timer(0.8 + 2.5 + 1.2, false).timeout
 
 
 ## Darken the screen and show a final line of text. It stays up (use for custom endings).
-func show_ending(msg: String) -> void:
-	hud.show_ending(msg)
+## `font` (optional): a Font for this text only; leave it out for message_font.
+func show_ending(msg: String, font: Font = null) -> void:
+	hud.show_ending(msg, font)
 
 
 ## Intro beat: on the black screen, the cord fades in by itself (with tether_reveal_sound)
@@ -296,6 +325,9 @@ func go_to_scene(scene: String, fade: float = 1.0) -> void:
 	lock_input(1.0e6)
 	Blackout.carry_in = maxf(fade, 0.05)
 	await blackout.fade_to(1.0, fade)
+	var cover := get_node_or_null("/root/ScreenFade")
+	if cover:
+		cover.hold()  # stays black through the empty frame between the two scenes
 	get_tree().change_scene_to_file(path)
 
 

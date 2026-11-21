@@ -49,6 +49,7 @@ static func redraw_all(tree: SceneTree) -> void:
 
 
 func _ready() -> void:
+	FastDraw.use_on(self)  # meadow flowers are FastDraw discs
 	_sync()
 
 
@@ -112,10 +113,10 @@ func _draw_meadow() -> void:
 	rng.seed = hash(Vector2i(global_position))  # same grass every time for this block
 	var band := minf(_BAND, size.y)
 	# body: lit top band, then dark earth
-	draw_polygon(PackedVector2Array([Vector2.ZERO, Vector2(size.x, 0), Vector2(size.x, band), Vector2(0, band)]),
+	FastDraw.quad(self, PackedVector2Array([Vector2.ZERO, Vector2(size.x, 0), Vector2(size.x, band), Vector2(0, band)]),
 		PackedColorArray([meadow_top, meadow_top, meadow_body, meadow_body]))
 	if size.y > band:
-		draw_polygon(PackedVector2Array([Vector2(0, band), Vector2(size.x, band), size, Vector2(0, size.y)]),
+		FastDraw.quad(self, PackedVector2Array([Vector2(0, band), Vector2(size.x, band), size, Vector2(0, size.y)]),
 			PackedColorArray([meadow_body, meadow_body, meadow_deep, meadow_deep]))
 	# rough rock on exposed sides - drawn OUTSIDE the box only
 	for side in [-1.0, 1.0]:
@@ -144,11 +145,11 @@ func _draw_meadow() -> void:
 		if not _covered(Vector2(x, -2.0), rects):
 			var hgt := rng.randf_range(5, 13) * (1.7 if rng.randf() < 0.07 else 1.0)
 			var lean := rng.randf_range(-4, 5)
-			draw_colored_polygon(PackedVector2Array([Vector2(x - 1.6, 1), Vector2(x + 1.6, 1), Vector2(x + lean, -hgt)]), meadow_top)
+			FastDraw.tri(self, Vector2(x - 1.6, 1), Vector2(x + 1.6, 1), Vector2(x + lean, -hgt), meadow_top)
 			if rng.randf() < 0.03 and not meadow_flowers.is_empty():
 				var fc: Color = meadow_flowers[rng.randi() % meadow_flowers.size()]
 				draw_line(Vector2(x, 0), Vector2(x + lean * 1.3, -hgt - 7), meadow_top, 1.0)
-				draw_circle(Vector2(x + lean * 1.3, -hgt - 8), 2.3, fc)
+				FastDraw.circle(self, Vector2(x + lean * 1.3, -hgt - 8), 2.3, fc)
 			lip.append(Vector2(x, 0.5))
 		elif lip.size() > 1:
 			draw_polyline(lip, lip_col, 1.5)

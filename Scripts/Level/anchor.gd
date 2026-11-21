@@ -2,6 +2,8 @@
 class_name TetherAnchor
 extends Node2D
 ## A ring the cord can be hooked over. Acts as a pulley between player and companion.
+## Use the prefab Scenes/Prefabs/tether_anchor.tscn: edit the prefab (e.g. its hook sound) and
+## every ring follows.
 ## The faint circle in the editor shows the default hook range (Tether.anchor_range).
 
 @export var radius := 9.0
@@ -17,15 +19,35 @@ extends Node2D
 		glow = v
 		queue_redraw()
 
+@export_group("Sound")
+## Plays when the cord hooks onto this ring. Optional.
+@export var hook_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var hook_volume_db := -8.0
+## Plays when the cord comes off this ring. Optional.
+@export var release_sound: AudioStream
+@export_range(-40.0, 12.0, 0.5) var release_volume_db := -14.0
+
 var state := 0:  ## 0 idle, 1 in range, 2 hooked
 	set(v):
 		if v != state:
+			if v == 2:
+				_play(hook_sound, hook_volume_db)
+			elif state == 2:
+				_play(release_sound, release_volume_db)
 			state = v
 			queue_redraw()
 
 
 func _ready() -> void:
 	add_to_group("anchors")
+
+
+func _play(stream: AudioStream, db: float) -> void:
+	if stream == null or Engine.is_editor_hint():
+		return
+	var sm := get_node_or_null("/root/SoundManager")
+	if sm:
+		sm.play_sound(stream, db)
 
 
 func _draw() -> void:

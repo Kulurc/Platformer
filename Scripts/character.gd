@@ -15,7 +15,7 @@ enum Shape { RECT, CIRCLE }
 
 ## Silhouette look (set by a LevelArt node, e.g. the meadow): a dark body, a rim of light in
 ## this character's own `color` on the sun side, and glowing eyes. Off = the normal look.
-var silhouette := false:
+var silhouette := true:
 	set(v):
 		silhouette = v
 		queue_redraw()

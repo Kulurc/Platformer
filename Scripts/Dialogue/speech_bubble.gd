@@ -11,7 +11,10 @@ extends Node2D
 signal line_done(token: int)
 
 const MAX_WIDTH := 220.0
-const FONT_SIZE := 14
+## How strongly [b] text is thickened, and how far [i] text leans, when the font has no
+## real bold/italic file (the bubble builds them from the one font you give it).
+const BOLD_EMBOLDEN := 0.6
+const ITALIC_SLANT := 0.2
 ## Tags accepted in <angle> form and rewritten to [square] BBCode.
 const ANGLE_TAGS := "shake|wave|tornado|rainbow|fade|pulse|b|i|u|s|code|color|bgcolor|fgcolor|outline_color|outline_size|font_size|center|right"
 const TAIL := 8.0
@@ -22,6 +25,12 @@ var _panel: PanelContainer
 var _label: RichTextLabel
 var _plain := ""           ## message with tags stripped (what actually gets typed)
 static var _angle_re: RegEx
+## Font every bubble uses unless a DialogueLine sets its own. Set by the TetherRig from its
+## Fonts group (dialogue_font / dialogue_font_size). null = Godot's default font.
+static var default_font: Font
+static var default_font_size := 14
+var _font: Font            ## font currently applied to the label (to skip rebuilding variants)
+var _font_size := 0
 var _style: StyleBoxFlat
 var _line: DialogueLine
 var _tint := Color.WHITE
@@ -60,8 +69,6 @@ func _ready() -> void:
 	_label.scroll_active = false
 	_label.clip_contents = false  # let [shake]/[wave] glyphs move past the edge instead of clipping
 	_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for f in ["normal_font_size", "bold_font_size", "italics_font_size", "bold_italics_font_size", "mono_font_size"]:
-		_label.add_theme_font_size_override(f, FONT_SIZE)
 	_label.add_theme_color_override("default_color", Color(0.1, 0.1, 0.14))
 	_label.visible_characters_behavior = TextServer.VC_CHARS_AFTER_SHAPING  # layout fixed while typing
 	_panel.add_child(_label)
@@ -78,10 +85,12 @@ func say(line: DialogueLine, tint: Color) -> void:
 	_line = line
 	_tint = tint
 	_style.bg_color = Color(tint, 0.95)
+	_apply_font(line.font if line.font else default_font,
+		line.font_size if line.font_size > 0 else default_font_size)
 	_label.text = to_bbcode(line.message)
 	_plain = _label.get_parsed_text()
 	var font := _label.get_theme_font("normal_font")
-	var w := font.get_multiline_string_size(_plain, HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE).x
+	var w := font.get_multiline_string_size(_plain, HORIZONTAL_ALIGNMENT_LEFT, -1, _font_size).x
 	# Short lines size to their content on one line; long ones wrap at MAX_WIDTH.
 	if w <= MAX_WIDTH:
 		_label.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -140,6 +149,38 @@ func _process(dt: float) -> void:
 				line_done.emit(_token)
 	modulate.a = _alpha
 	queue_redraw()
+
+
+## Use `f` for the bubble text at `size` px. [b], [i] and [b][i] get thickened / slanted
+## versions of the same font so they don't fall back to Godot's default typeface.
+func _apply_font(f: Font, size: int) -> void:
+	if size != _font_size:
+		_font_size = size
+		for n in ["normal_font_size", "bold_font_size", "italics_font_size", "bold_italics_font_size", "mono_font_size"]:
+			_label.add_theme_font_size_override(n, size)
+	if f == _font:
+		return
+	_font = f
+	var names := ["normal_font", "bold_font", "italics_font", "bold_italics_font"]
+	if f == null:
+		for n in names:
+			_label.remove_theme_font_override(n)
+		return
+	var slant := Transform2D(Vector2(1.0, ITALIC_SLANT), Vector2(0.0, 1.0), Vector2.ZERO)
+	var bold := FontVariation.new()
+	bold.base_font = f
+	bold.variation_embolden = BOLD_EMBOLDEN
+	var italic := FontVariation.new()
+	italic.base_font = f
+	italic.variation_transform = slant
+	var bold_italic := FontVariation.new()
+	bold_italic.base_font = f
+	bold_italic.variation_embolden = BOLD_EMBOLDEN
+	bold_italic.variation_transform = slant
+	_label.add_theme_font_override("normal_font", f)
+	_label.add_theme_font_override("bold_font", bold)
+	_label.add_theme_font_override("italics_font", italic)
+	_label.add_theme_font_override("bold_italics_font", bold_italic)
 
 
 ## Rewrites <tag>, <tag=value>, <tag key=value> and </tag> to [square] BBCode for known tags.

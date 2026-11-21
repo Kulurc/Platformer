@@ -47,6 +47,7 @@ extends Node2D
 
 
 func _ready() -> void:
+	FastDraw.use_on(self)  # circles below are FastDraw discs (batched: ~1 draw call, not thousands)
 	z_as_relative = false
 	z_index = -1  # behind the characters and the cord, in front of the backdrop
 
@@ -65,23 +66,23 @@ func _draw() -> void:
 			for j in 26:
 				var a := rr.randf() * TAU
 				var d := sqrt(rr.randf()) * leaf_spread
-				draw_circle(t + off + Vector2(cos(a), sin(a) * 0.8) * d, rr.randf_range(5.0, 13.0), c)
+				FastDraw.circle(self, t + off + Vector2(cos(a), sin(a) * 0.8) * d, rr.randf_range(5.0, 13.0), c)
 	var rf := RandomNumberGenerator.new()
 	rf.seed = tree_seed * 11 + 41
 	for t in tips:
 		for j in 10:
 			var a := rf.randf() * TAU
-			draw_circle(t + Vector2(cos(a), sin(a) * 0.8) * rf.randf_range(leaf_spread + 2.0, leaf_spread + 14.0), rf.randf_range(1.5, 3.5), leaf_color)
+			FastDraw.circle(self, t + Vector2(cos(a), sin(a) * 0.8) * rf.randf_range(leaf_spread + 2.0, leaf_spread + 14.0), rf.randf_range(1.5, 3.5), leaf_color)
 	if blossoms:
 		for t in tips:
 			if rf.randf() < 0.5:
-				draw_circle(t + Vector2(rf.randf_range(-30, 30), rf.randf_range(-24, 20)), 1.8, blossom_color)
+				FastDraw.circle(self, t + Vector2(rf.randf_range(-30, 30), rf.randf_range(-24, 20)), 1.8, blossom_color)
 
 
 func _branch(r: RandomNumberGenerator, p: Vector2, ang: float, length: float, w: float, depth: int, tips: Array[Vector2]) -> void:
 	var q := p + Vector2(cos(ang), sin(ang)) * length
 	var side := Vector2(-sin(ang), cos(ang))
-	draw_colored_polygon(PackedVector2Array([p - side * w * 0.5, p + side * w * 0.5, q + side * w * 0.33, q - side * w * 0.33]), leaf_color)
+	FastDraw.quad(self, PackedVector2Array([p - side * w * 0.5, p + side * w * 0.5, q + side * w * 0.33, q - side * w * 0.33]), PackedColorArray([leaf_color]))
 	if depth >= branch_levels:
 		tips.append(q)
 		return

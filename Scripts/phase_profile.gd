@@ -12,6 +12,11 @@ enum AIMode { MIRROR, FOLLOW }
 @export_multiline var subtitle := ""
 ## Show the title card when this phase starts (phase I's is shown by the intro trigger).
 @export var show_title := true
+## Optional: a font file (.ttf/.otf/.tres) just for this phase's title. Empty = the
+## TetherRig's Fonts → title_font.
+@export var title_font: Font
+## Optional: a font just for this phase's subtitle. Empty = TetherRig's Fonts → subtitle_font.
+@export var subtitle_font: Font
 
 @export_group("Cord")
 ## Longest the cord can be in this phase. When entering a phase with a shorter max, the

@@ -13,9 +13,9 @@
 [ext_resource type="Script" path="res://Scripts/Dialogue/dialogue_fade.gd" id="8_yji5v"]
 [ext_resource type="Script" uid="uid://dmn171fwmr3bv" path="res://Scripts/Dialogue/dialogue_call.gd" id="10_bdlbp"]
 [ext_resource type="Script" uid="uid://wa3ylqlg5il6" path="res://Scripts/Level/zone.gd" id="11_2h8qs"]
-[ext_resource type="Script" uid="uid://catlhkupy8d5i" path="res://Scripts/Level/anchor.gd" id="12_rpty4"]
 [ext_resource type="PackedScene" path="res://Scenes/Prefabs/level_exit.tscn" id="13_6jj8j"]
 [ext_resource type="Shader" uid="uid://cdl8pcjphrc3y" path="res://Shaders/anxiety.gdshader" id="22_q13vw"]
+[ext_resource type="PackedScene" path="res://Scenes/Prefabs/tether_anchor.tscn" id="40_ring"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_k83jr"]
 size = Vector2(40, 1800)
@@ -358,12 +358,14 @@ z_as_relative = false
 [node name="Level" type="Node2D" parent="."]
 
 [node name="I_GroundLeft" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(-3200, 0)
 script = ExtResource("1_2llne")
 size = Vector2(3000, 400)
 look = 1
 
 [node name="I_Ground" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(-200, 0)
 script = ExtResource("1_2llne")
 size = Vector2(1872, 400)
@@ -371,6 +373,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground2" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(1617, -64)
 script = ExtResource("1_2llne")
 size = Vector2(903, 466)
@@ -378,6 +381,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground3" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(2512, -128)
 script = ExtResource("1_2llne")
 size = Vector2(680, 530)
@@ -385,6 +389,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground6" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(3848, -128)
 script = ExtResource("1_2llne")
 size = Vector2(88, 530)
@@ -392,6 +397,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground4" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(3171, -248)
 script = ExtResource("1_2llne")
 size = Vector2(680, 650)
@@ -399,6 +405,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground5" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(3935, -312)
 script = ExtResource("1_2llne")
 size = Vector2(241, 714)
@@ -406,6 +413,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground7" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(4176, -192)
 script = ExtResource("1_2llne")
 size = Vector2(88, 594)
@@ -413,6 +421,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground8" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(4258, -368)
 script = ExtResource("1_2llne")
 size = Vector2(867, 770)
@@ -420,6 +429,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground9" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(5296, -368)
 script = ExtResource("1_2llne")
 size = Vector2(1320, 770)
@@ -427,6 +437,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground10" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(6616, -432)
 script = ExtResource("1_2llne")
 size = Vector2(272, 834)
@@ -434,6 +445,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground11" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(6888, -504)
 script = ExtResource("1_2llne")
 size = Vector2(364, 906)
@@ -441,6 +453,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground14" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(9311, -640)
 script = ExtResource("1_2llne")
 size = Vector2(272, 1042)
@@ -448,6 +461,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground15" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(9583, -736)
 script = ExtResource("1_2llne")
 size = Vector2(369, 1138)
@@ -455,6 +469,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground16" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(9948, -808)
 script = ExtResource("1_2llne")
 size = Vector2(272, 1210)
@@ -462,6 +477,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground17" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(10220, -880)
 script = ExtResource("1_2llne")
 size = Vector2(580, 1282)
@@ -469,6 +485,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground18" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(11104, -880)
 script = ExtResource("1_2llne")
 size = Vector2(344, 1282)
@@ -476,6 +493,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground19" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(11767, -880)
 script = ExtResource("1_2llne")
 size = Vector2(344, 1282)
@@ -483,6 +501,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground20" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(12424, -880)
 script = ExtResource("1_2llne")
 size = Vector2(1560, 1282)
@@ -490,6 +509,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground21" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(13976, -1008)
 script = ExtResource("1_2llne")
 size = Vector2(424, 1410)
@@ -497,6 +517,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground22" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(14397, -1128)
 script = ExtResource("1_2llne")
 size = Vector2(424, 1530)
@@ -504,6 +525,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground23" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(14946, -1200)
 script = ExtResource("1_2llne")
 size = Vector2(1510, 1602)
@@ -511,6 +533,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground13" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(7621, -576)
 script = ExtResource("1_2llne")
 size = Vector2(1691, 978)
@@ -518,6 +541,7 @@ color = Color(0.5568628, 0.8666667, 0.15686275, 1)
 look = 1
 
 [node name="I_Ground12" type="StaticBody2D" parent="Level"]
+texture_filter = 4
 position = Vector2(7248, -416)
 script = ExtResource("1_2llne")
 size = Vector2(376, 818)
@@ -529,12 +553,14 @@ look = 1
 [node name="EndTree" type="Node2D" parent="Decor"]
 z_index = -1
 z_as_relative = false
+texture_filter = 4
 position = Vector2(15335, -1200)
 script = ExtResource("4_5rnbt")
 
 [node name="StartTree" type="Node2D" parent="Decor"]
 z_index = -1
 z_as_relative = false
+texture_filter = 4
 position = Vector2(-330, 0)
 script = ExtResource("4_5rnbt")
 tree_seed = 11
@@ -674,24 +700,20 @@ phase = 1
 
 [node name="Anchors" type="Node2D" parent="."]
 
-[node name="I_Ring" type="Node2D" parent="Anchors"]
+[node name="I_Ring" parent="Anchors" instance=ExtResource("40_ring")]
 position = Vector2(7519, -630)
-script = ExtResource("12_rpty4")
 
-[node name="I_Ring2" type="Node2D" parent="Anchors"]
+[node name="I_Ring2" parent="Anchors" instance=ExtResource("40_ring")]
 position = Vector2(10934, -1039)
-script = ExtResource("12_rpty4")
 
-[node name="I_Ring3" type="Node2D" parent="Anchors"]
+[node name="I_Ring3" parent="Anchors" instance=ExtResource("40_ring")]
 position = Vector2(11597, -1039)
-script = ExtResource("12_rpty4")
 
-[node name="I_Ring4" type="Node2D" parent="Anchors"]
+[node name="I_Ring4" parent="Anchors" instance=ExtResource("40_ring")]
 position = Vector2(12254, -1039)
-script = ExtResource("12_rpty4")
 
 [node name="LevelExit" parent="." instance=ExtResource("13_6jj8j")]
 position = Vector2(15366, -1337)
-next_scene = "prototype"
+next_scene = "Level2_Visual"
 
 [editable path="TetherRig"]
