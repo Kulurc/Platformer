@@ -13,6 +13,15 @@ enum Shape { RECT, CIRCLE }
 @export var speaker := DialogueLine.Speaker.GIRL     ## which DialogueLine speaker this body voices
 @export var bubble_tint := Color(0.84, 0.9, 1.0)     ## speech bubble colour
 
+## Silhouette look (set by a LevelArt node, e.g. the meadow): a dark body, a rim of light in
+## this character's own `color` on the sun side, and glowing eyes. Off = the normal look.
+var silhouette := false:
+	set(v):
+		silhouette = v
+		queue_redraw()
+var silhouette_color := Color("15191c")
+var eye_glow := Color(1.0, 0.97, 0.9)
+
 @export_group("Run")
 @export var run_speed := 240.0
 @export var ground_accel := 2200.0
@@ -248,6 +257,9 @@ func _draw() -> void:
 		col = color.lerp(partner.color, bleed * 0.5)
 	if left_behind:
 		col = col.lerp(Color(0.42, 0.44, 0.5), 0.75)
+	var rim := col
+	if silhouette:
+		col = silhouette_color.lerp(Color(0.3, 0.32, 0.36), 0.35 if left_behind else 0.0)
 	var off := _shake_offset()
 	if _sprite:
 		_draw_overlays()  # the sprite is the body; only draw the "you" marker / "..." on top
@@ -263,6 +275,8 @@ func _draw() -> void:
 		off.x += randf_range(-3.0, 3.0)
 
 	_draw_body(draw_shape, draw_size, col, off)
+	if silhouette:
+		_draw_rim(draw_shape, draw_size, rim, off)
 
 	# Silhouette bleed: the partner's outline grows inside you.
 	if partner and bleed > 0.05 and not left_behind:
@@ -274,6 +288,14 @@ func _draw() -> void:
 	if left_behind and partner:
 		look = (partner.global_position - global_position).normalized()
 	var eye_y := -half_h() * 0.35 * _squash.y
+	if silhouette:
+		var ex := [Vector2(-3.5, eye_y), Vector2(3.5, eye_y)] if draw_shape == Shape.CIRCLE 			else [Vector2(look.x * 3.0 - 2.5, eye_y), Vector2(look.x * 3.0 + 2.5, eye_y)]
+		for e in ex:
+			var ep: Vector2 = off + e + (look * 4.0 if draw_shape == Shape.CIRCLE else Vector2.ZERO)
+			draw_circle(ep, 3.5, Color(eye_glow, 0.18))
+			draw_circle(ep, 1.4, eye_glow)
+		_draw_overlays()
+		return
 	if draw_shape == Shape.CIRCLE:
 		draw_circle(off + Vector2(-4.5, eye_y) + look * 5.0, 2.5, dark)
 		draw_circle(off + Vector2(4.5, eye_y) + look * 5.0, 2.5, dark)
@@ -352,14 +374,30 @@ func _draw_body(s: Shape, sz: Vector2, col: Color, off: Vector2) -> void:
 		var r := sz.x * 0.5
 		var pulse := 1.0 + sin(_time * 2.2) * 0.04 * (0.0 if left_behind else 1.0)
 		draw_set_transform(off + Vector2(0, r * (1.0 - _squash.y)), 0.0, _squash * pulse)
-		for i in 3:
-			draw_circle(Vector2.ZERO, r * (1.7 - i * 0.22), Color(col, 0.05))
+		if not silhouette:
+			for i in 3:
+				draw_circle(Vector2.ZERO, r * (1.7 - i * 0.22), Color(col, 0.05))
 		draw_circle(Vector2.ZERO, r, col)
 		draw_set_transform(Vector2.ZERO)
 	else:
 		var d := sz * _squash
 		var top := sz.y * 0.5 - d.y  # squash around the feet
 		draw_rect(Rect2(off + Vector2(-d.x * 0.5, top), d), col)
+
+
+## Silhouette look: a thin line of light on the sun side (top-right) in the character's colour.
+func _draw_rim(s: Shape, sz: Vector2, col: Color, off: Vector2) -> void:
+	if s == Shape.CIRCLE:
+		var r := sz.x * 0.5
+		draw_set_transform(off + Vector2(0, r * (1.0 - _squash.y)), 0.0, _squash)
+		draw_arc(Vector2.ZERO, r - 0.7, -PI * 0.5, PI * 0.1, 18, col, 1.8, true)
+		draw_set_transform(Vector2.ZERO)
+	else:
+		var d := sz * _squash
+		var top := sz.y * 0.5 - d.y
+		var tl := off + Vector2(-d.x * 0.5, top)
+		draw_line(tl + Vector2(1, 0.75), tl + Vector2(d.x - 0.5, 0.75), col, 1.5)
+		draw_line(tl + Vector2(d.x - 0.75, 1), tl + Vector2(d.x - 0.75, d.y - 1), col, 1.5)
 
 
 func _draw_outline(s: Shape, sz: Vector2, col: Color, off: Vector2) -> void:

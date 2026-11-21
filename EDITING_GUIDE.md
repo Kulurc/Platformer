@@ -193,6 +193,21 @@ Camera follow speed / lean / look-ahead, `checkpoint_partner_radius`,
 `sever_speed_mult` / `sever_jump_mult` (how good movement feels after severing), and
 `fall_respawn_depth`.
 
+### Art: the meadow look (Level1_Visual)
+`Scenes/Level1_Visual.tscn` is Level1 with art applied - same layout, triggers and dialogue. Purely visual:
+- **LevelArt** node (`Scenes/Prefabs/level_art.tscn`, top of the scene): sky + sun, fog-streak clouds, three
+  parallax background layers, meadow flowers, dark earth and chasm shading, drifting dust, foreground grass,
+  screen finish (vignette, grain), silhouette characters and yellow glowing rings. Every colour, amount and
+  parallax speed is in its Inspector groups. The sky/backdrop/dust/silhouettes only show when the game runs.
+- **Block → `look`**: PLAIN (flat colour) or MEADOW (grass, flowers, rock edges). Only the drawing changes -
+  collision stays exactly `size`. New blocks start PLAIN; set MEADOW to match the level.
+- **MeadowTree** (`Decor/EndTree`, by the exit): change `tree_seed` for a different tree, plus trunk/branch/leaf settings.
+- To dress another level: drop in `level_art.tscn`, set its blocks to MEADOW.
+- Level1 and Level1_Visual are separate files: layout edits to one do NOT carry over to the other.
+- Level1_Visual's left edge: no WallLeft. The field continues (`Level/I_GroundLeft`, scenery only) with
+  `Decor/StartTree`; `Bounds/LeftBorder` is an invisible wall at x = -200 (where WallLeft's face was), and
+  `Dialogue/LeftBorderLine` plays Wisp's "The other way, silly!" once. Move the wall and the trigger together.
+
 ### Level pieces
 - **Resize handles** (Box Resize plugin, `addons/box_resize/`): select a Block, CrumbleBlock, Gate, Zone,
   Plate or DialogueTrigger and drag the orange squares on its edges/corners. Snaps to 8 px (hold **Ctrl** for free),
